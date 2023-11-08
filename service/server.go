@@ -28,12 +28,12 @@ import (
 )
 
 const (
-	welcomeText = `__   __ _     ______       ____  _____ ______     _____ ____ _____ 
-\ \ / // \   |__  / |     / ___|| ____|  _ \ \   / /_ _/ ___| ____|
- \ V // _ \    / /| |     \___ \|  _| | |_) \ \ / / | | |   |  _|  
-  | |/ ___ \  / /_| |___   ___) | |___|  _ < \ V /  | | |___| |___ 
-  |_/_/   \_\/____|_____| |____/|_____|_| \_\ \_/  |___\____|_____|
-                                                                   `
+	welcomeText = `____  _   _ ____  _____ ____    ____  _____ ______     _____ ____ _____ 
+/ ___|| | | |  _ \| ____|  _ \  / ___|| ____|  _ \ \   / /_ _/ ___| ____|
+\___ \| | | | |_) |  _| | |_) | \___ \|  _| | |_) \ \ / / | | |   |  _|  
+ ___) | |_| |  __/| |___|  _ <   ___) | |___|  _ < \ V /  | | |___| |___ 
+|____/ \___/|_|   |_____|_| \_\ |____/|_____|_| \_\ \_/  |___\____|_____|
+                                                                         `
 )
 
 type mountFn func(ctx context.Context, listener net.Listener) error
@@ -46,7 +46,7 @@ type workerStruct struct {
 	fn       workerFn
 }
 
-type YazlService struct {
+type SuperService struct {
 	serviceName string
 	tag         string
 
@@ -75,10 +75,10 @@ type YazlService struct {
 	workers []*workerStruct
 }
 
-type YazlServiceOption func(*YazlService)
+type SuperServiceOption func(*SuperService)
 type gatewayFunc func(ctx context.Context, mux *gwRuntime.ServeMux, conn *grpc.ClientConn) error
 
-func (ys *YazlService) httpIncomingHeaderMatcher(headerName string) (mdName string, ok bool) {
+func (ys *SuperService) httpIncomingHeaderMatcher(headerName string) (mdName string, ok bool) {
 	if len(ys.grpcIncomingHeaderMapping) == 0 {
 		return "", false
 	}
@@ -88,7 +88,7 @@ func (ys *YazlService) httpIncomingHeaderMatcher(headerName string) (mdName stri
 	return mdName, exists
 }
 
-func (ys *YazlService) httpOutgoingHeaderMatcher(headerName string) (mdName string, ok bool) {
+func (ys *SuperService) httpOutgoingHeaderMatcher(headerName string) (mdName string, ok bool) {
 	if len(ys.grpcOutgoingHeaderMapping) == 0 {
 		return "", false
 	}
@@ -98,26 +98,26 @@ func (ys *YazlService) httpOutgoingHeaderMatcher(headerName string) (mdName stri
 	return mdName, exists
 }
 
-func WithTag(tag string) YazlServiceOption {
-	return func(ms *YazlService) {
+func WithTag(tag string) SuperServiceOption {
+	return func(ms *SuperService) {
 		ms.tag = tag
 	}
 }
 
-func WithGrpcGatewayServeMuxOption(opt gwRuntime.ServeMuxOption) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithGrpcGatewayServeMuxOption(opt gwRuntime.ServeMuxOption) SuperServiceOption {
+	return func(ys *SuperService) {
 		ys.grpcGwServeMuxOption = append(ys.grpcGwServeMuxOption, opt)
 	}
 }
 
-func WithGrpcOptions(opt grpc.ServerOption) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithGrpcOptions(opt grpc.ServerOption) SuperServiceOption {
+	return func(ys *SuperService) {
 		ys.grpcOptions = append(ys.grpcOptions, opt)
 	}
 }
 
-func WithServiceName(name string) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithServiceName(name string) SuperServiceOption {
+	return func(ys *SuperService) {
 		lg.Debug("With service name", name)
 
 		segs := strings.SplitN(name, ":", 2)
@@ -130,28 +130,28 @@ func WithServiceName(name string) YazlServiceOption {
 	}
 }
 
-func WithGRPC(preprocess func(srv *grpc.Server)) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithGRPC(preprocess func(srv *grpc.Server)) SuperServiceOption {
+	return func(ys *SuperService) {
 		lg.Debug("Enabled GRPC")
 		ys.grpcPreprocess = append(ys.grpcPreprocess, preprocess)
 	}
 }
 
-func WithGRPCUI() YazlServiceOption {
-	return func(ys *YazlService) {
+func WithGRPCUI() SuperServiceOption {
+	return func(ys *SuperService) {
 		ys.withGRPCUI = true
 	}
 }
 
-func WithHTTPCORS() YazlServiceOption {
-	return func(ys *YazlService) {
+func WithHTTPCORS() SuperServiceOption {
+	return func(ys *SuperService) {
 		lg.Debug("Enabled HTTP CORS")
 		ys.httpCORS = true
 	}
 }
 
-func WithPprof() YazlServiceOption {
-	return func(ys *YazlService) {
+func WithPprof() SuperServiceOption {
+	return func(ys *SuperService) {
 		ys.httpMux.HandleFunc("/debug/pprof/", pprof.Index)
 		ys.httpMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		ys.httpMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
@@ -164,8 +164,8 @@ func WithPprof() YazlServiceOption {
 	}
 }
 
-func WithHttpHandler(pattern string, handler http.Handler) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithHttpHandler(pattern string, handler http.Handler) SuperServiceOption {
+	return func(ys *SuperService) {
 		if !strings.HasPrefix(pattern, "/") {
 			pattern = "/" + pattern
 		}
@@ -184,8 +184,8 @@ func WithHttpHandler(pattern string, handler http.Handler) YazlServiceOption {
 }
 
 // WithRestfulGateway binds GRPC gateway handler for all registered grpc service.
-func WithRestfulGateway(apiPrefix string, handler gatewayFunc) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithRestfulGateway(apiPrefix string, handler gatewayFunc) SuperServiceOption {
+	return func(ys *SuperService) {
 		lg.Debug("Enabled GRPC HTTP Gateway", apiPrefix)
 		prefix := strings.TrimSuffix(apiPrefix, "/")
 		ys.gatewayAPIPrefix = append(ys.gatewayAPIPrefix, prefix)
@@ -194,14 +194,14 @@ func WithRestfulGateway(apiPrefix string, handler gatewayFunc) YazlServiceOption
 }
 
 // WithWorker service will terminate when any of the worker return
-func WithWorker(worker func(ctx context.Context) error) YazlServiceOption {
+func WithWorker(worker func(ctx context.Context) error) SuperServiceOption {
 	name := guessWorkerName(worker)
 	return WithNamedWorker(name, worker)
 }
 
 // WithNamedWorker service will terminate when any of the worker return
-func WithNamedWorker(name string, worker func(ctx context.Context) error) YazlServiceOption {
-	return func(ys *YazlService) {
+func WithNamedWorker(name string, worker func(ctx context.Context) error) SuperServiceOption {
+	return func(ys *SuperService) {
 		lg.Debug(fmt.Sprintf("Added worker=%s fullname=%s", name, getFuncName(worker)))
 		ys.workers = append(ys.workers, &workerStruct{
 			name:     name,
@@ -211,7 +211,7 @@ func WithNamedWorker(name string, worker func(ctx context.Context) error) YazlSe
 	}
 }
 
-func (ys *YazlService) waitHTTPServer(httpLisenter net.Listener) mountFn {
+func (ys *SuperService) waitHTTPServer(httpLisenter net.Listener) mountFn {
 	return func(ctx context.Context, listener net.Listener) error {
 		if err := http.Serve(httpLisenter, ys.httpHandler); err != nil {
 			return errors.Wrap(err, "http.Serve")
@@ -220,7 +220,7 @@ func (ys *YazlService) waitHTTPServer(httpLisenter net.Listener) mountFn {
 	}
 }
 
-func (ys *YazlService) waitGRPCServer(grpcListener net.Listener) mountFn {
+func (ys *SuperService) waitGRPCServer(grpcListener net.Listener) mountFn {
 	return func(ctx context.Context, listener net.Listener) error {
 		if err := ys.grpcServer.Serve(grpcListener); err != nil {
 			return errors.Wrap(err, "grpcServer.Serve")
@@ -229,14 +229,14 @@ func (ys *YazlService) waitGRPCServer(grpcListener net.Listener) mountFn {
 	}
 }
 
-func (ys *YazlService) waitCmux(ctx context.Context, listener net.Listener) error {
+func (ys *SuperService) waitCmux(ctx context.Context, listener net.Listener) error {
 	if err := ys.cmux.Serve(); err != nil {
 		return errors.Wrap(err, "cmux.Serve")
 	}
 	return nil
 }
 
-func (ys *YazlService) waitGraceFulKill(ctx context.Context, listener net.Listener) error {
+func (ys *SuperService) waitGraceFulKill(ctx context.Context, listener net.Listener) error {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch,
 		os.Interrupt,
@@ -262,7 +262,7 @@ func (ys *YazlService) waitGraceFulKill(ctx context.Context, listener net.Listen
 	}
 }
 
-func (ys *YazlService) mountGRPCUI(ctx context.Context, listener net.Listener) error {
+func (ys *SuperService) mountGRPCUI(ctx context.Context, listener net.Listener) error {
 	nameSplit := strings.Split(ys.serviceName, ":")
 	name := nameSplit[0]
 
@@ -276,7 +276,7 @@ func (ys *YazlService) mountGRPCUI(ctx context.Context, listener net.Listener) e
 	return nil
 }
 
-func (ys *YazlService) setHTTPCORS(listener net.Listener) error {
+func (ys *SuperService) setHTTPCORS(listener net.Listener) error {
 	ys.httpHandler = cors.AllowAll().Handler(ys.httpHandler)
 	return nil
 }
@@ -294,8 +294,8 @@ func guessWorkerName(worker func(ctx context.Context) error) string {
 	return str
 }
 
-func NewYazlService(opts ...YazlServiceOption) *YazlService {
-	ys := &YazlService{
+func NewSuperService(opts ...SuperServiceOption) *SuperService {
+	ys := &SuperService{
 		parentCtx:  context.Background(),
 		httpMux:    http.NewServeMux(),
 		httpCORS:   true,
@@ -312,7 +312,7 @@ func NewYazlService(opts ...YazlServiceOption) *YazlService {
 	return ys
 }
 
-func (ys *YazlService) registerIntoConsul(ctx context.Context, listener net.Listener) error {
+func (ys *SuperService) registerIntoConsul(ctx context.Context, listener net.Listener) error {
 	addr, ok := listener.Addr().(*net.TCPAddr)
 	if ok {
 		if err := finder.GetServiceFinder().RegisterServiceWithTag(ys.serviceName, addr.String(), ys.tag); err != nil {
@@ -331,7 +331,7 @@ func (ys *YazlService) registerIntoConsul(ctx context.Context, listener net.List
 	return nil
 }
 
-func (ys *YazlService) mountGRPCRestfulGateway(ctx context.Context, listener net.Listener) error {
+func (ys *SuperService) mountGRPCRestfulGateway(ctx context.Context, listener net.Listener) error {
 	fixGatewayVerb := func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			lg.Info(fmt.Sprintf("receive request: %v", r.URL.Path))
@@ -357,7 +357,7 @@ func (ys *YazlService) mountGRPCRestfulGateway(ctx context.Context, listener net
 	return nil
 }
 
-func (ys *YazlService) dialSelfConnection(listener net.Listener) error {
+func (ys *SuperService) dialSelfConnection(listener net.Listener) error {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(16 * 1024 * 1024)),
@@ -374,7 +374,7 @@ func (ys *YazlService) dialSelfConnection(listener net.Listener) error {
 	return nil
 }
 
-func (ys *YazlService) mountWorker(worker *workerStruct) mountFn {
+func (ys *SuperService) mountWorker(worker *workerStruct) mountFn {
 	return func(ctx context.Context, listener net.Listener) error {
 		err := worker.fn(ctx)
 		lg.Error(fmt.Sprintf("Worker terminated error=%s", err))
@@ -401,7 +401,7 @@ func waitContext(ctx context.Context, fn func() error) error {
 	return <-stop
 }
 
-func (ys *YazlService) Serve(listener net.Listener) error {
+func (ys *SuperService) Serve(listener net.Listener) error {
 	if len(ys.unaryInterceptors) > 1 {
 		ys.grpcOptions = append(ys.grpcOptions, grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(ys.unaryInterceptors...)))
 	} else if len(ys.unaryInterceptors) == 1 {
@@ -490,7 +490,7 @@ func (ys *YazlService) Serve(listener net.Listener) error {
 	return nil
 }
 
-func (ys *YazlService) displayWelcome(listener net.Listener) {
+func (ys *SuperService) displayWelcome(listener net.Listener) {
 	fmt.Println(welcomeText)
 	lg.Info("Listening", listener.Addr().String())
 	_, port, _ := net.SplitHostPort(listener.Addr().String())
@@ -500,7 +500,7 @@ func (ys *YazlService) displayWelcome(listener net.Listener) {
 	}
 }
 
-func (ys *YazlService) ListenAndServer(port int) error {
+func (ys *SuperService) ListenAndServer(port int) error {
 	addr := ""
 	if port > 0 {
 		addr = fmt.Sprintf(":%d", port)
