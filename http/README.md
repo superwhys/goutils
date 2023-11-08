@@ -1,4 +1,4 @@
-# yazl/utils/http
+# superwhys/goutils/http
 
 ## Example
 

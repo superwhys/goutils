@@ -17,7 +17,7 @@ func main() {
 
 	grpcSrv := exampleSrv.NewExampleService()
 
-	cs := service.NewYazlService(
+	cs := service.NewSuperService(
 		service.WithServiceName(flags.GetServiceName()),
 		service.WithHTTPCORS(),
 		service.WithPprof(),
