@@ -21,6 +21,7 @@ func main() {
 		service.WithServiceName(flags.GetServiceName()),
 		service.WithHTTPCORS(),
 		service.WithPprof(),
+		service.WithRestfulGateway("/", examplepb.RegisterExampleHelloServiceHandler),
 		service.WithGRPC(func(srv *grpc.Server) {
 			examplepb.RegisterExampleHelloServiceServer(srv, grpcSrv)
 		}),
