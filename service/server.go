@@ -104,6 +104,22 @@ func WithTag(tag string) SuperServiceOption {
 	}
 }
 
+// WithGRPCUnaryInterceptors chained given interceptors with MicroService
+// default UnaryServerInterceptors using grpc_middleware
+func WithGRPCUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) SuperServiceOption {
+	return func(ys *SuperService) {
+		ys.unaryInterceptors = append(ys.unaryInterceptors, interceptors...)
+	}
+}
+
+// WithGRPCStreamInterceptors chained given interceptors with MicroService
+// default StreamServerInterceptor using grpc_middleware
+func WithGRPCStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) SuperServiceOption {
+	return func(ys *SuperService) {
+		ys.streamInterceptors = append(ys.streamInterceptors, interceptors...)
+	}
+}
+
 func WithGrpcGatewayServeMuxOption(opt gwRuntime.ServeMuxOption) SuperServiceOption {
 	return func(ys *SuperService) {
 		ys.grpcGwServeMuxOption = append(ys.grpcGwServeMuxOption, opt)
