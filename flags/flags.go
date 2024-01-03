@@ -56,6 +56,10 @@ func initFlags() {
 	allKeys = append(allKeys, "debug")
 }
 
+func Viper() *viper.Viper {
+	return v
+}
+
 func GetServiceName() string {
 	return shared.GetServiceName()
 }
