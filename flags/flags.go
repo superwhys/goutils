@@ -27,11 +27,12 @@ type remoteServices struct {
 }
 
 var (
-	allKeys     []string
-	requiredKey []string
-	nestedKey   = map[string]interface{}{}
-	config      *string
-	debug       *bool
+	allKeys           []string
+	requiredKey       []string
+	nestedKey         = map[string]interface{}{}
+	config            *string
+	defaultConfigFile string
+	debug             *bool
 
 	manualServices *remoteServices
 
@@ -39,6 +40,10 @@ var (
 
 	servicesCache = Struct("remoteService", (*remoteServices)(nil), "Remote service config")
 )
+
+func OverrideDefaultConfigFile(configFile string) {
+	defaultConfigFile = configFile
+}
 
 func initFlags() {
 	v.AddConfigPath(".")
@@ -50,7 +55,7 @@ func initFlags() {
 	shared.PtrServiceName = pflag.String("service", os.Getenv("SERVICE"), "Service name to access the config in remote consul KV store.")
 	shared.PtrConsulAddr = pflag.String("consulAddr", consul.HostAddress+":8500", "Consul address")
 
-	config = pflag.StringP("config", "f", "", "Specify config file to parse. Support json, yaml, toml etc.")
+	config = pflag.StringP("config", "f", defaultConfigFile, "Specify config file to parse. Support json, yaml, toml etc.")
 	debug = pflag.Bool("debug", false, "Set true to enable debug mode")
 
 	allKeys = append(allKeys, "debug")
