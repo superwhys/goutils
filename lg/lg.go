@@ -3,6 +3,7 @@ package lg
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -17,11 +18,23 @@ var (
 )
 
 func init() {
-	infoLog = log.New(os.Stdout, color.GreenString("[INFO]"), log.LstdFlags|log.LUTC)
-	debugLog = log.New(os.Stdout, color.CyanString("[DEBUG]"), log.LstdFlags|log.Lshortfile|log.LUTC)
-	errLog = log.New(os.Stderr, color.RedString("[ERROR]"), log.LstdFlags|log.Lshortfile|log.LUTC)
-	warnLog = log.New(os.Stdout, color.YellowString("[WARN]"), log.LstdFlags|log.LUTC)
-	fatalLog = log.New(os.Stderr, color.RedString("[FATAL]"), log.LstdFlags|log.Llongfile|log.LUTC)
+
+	var stdout io.Writer = os.Stdout
+	var stderr io.Writer = os.Stderr
+
+	infoLog = log.New(stdout, color.GreenString("[INFO]"), log.LstdFlags|log.LUTC)
+	debugLog = log.New(stdout, color.CyanString("[DEBUG]"), log.LstdFlags|log.Lshortfile|log.LUTC)
+	errLog = log.New(stderr, color.RedString("[ERROR]"), log.LstdFlags|log.Lshortfile|log.LUTC)
+	warnLog = log.New(stdout, color.YellowString("[WARN]"), log.LstdFlags|log.LUTC)
+	fatalLog = log.New(stderr, color.RedString("[FATAL]"), log.LstdFlags|log.Llongfile|log.LUTC)
+}
+
+func SetOutput(stdout, stderr io.Writer) {
+	infoLog.SetOutput(stdout)
+	debugLog.SetOutput(stdout)
+	errLog.SetOutput(stderr)
+	warnLog.SetOutput(stdout)
+	fatalLog.SetOutput(stderr)
 }
 
 func IsDebug() bool {
