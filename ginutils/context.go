@@ -20,3 +20,17 @@ func StatusOk(c *gin.Context, data any) {
 		"data":    data,
 	})
 }
+
+type Handler func() (data any, statusCode int, err error)
+
+func HandlerFunc(handler Handler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		data, statusCode, err := handler()
+		if err != nil || statusCode != http.StatusOK {
+			AbortWithError(c, statusCode, err.Error())
+			return
+		}
+
+		StatusOk(c, data)
+	}
+}
