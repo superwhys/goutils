@@ -97,6 +97,7 @@ func Parse() {
 				Compress:   shared.IsLogCompress(),
 			}
 
+			lg.Infof("set logger to file: %v", shared.GetLogFileName())
 			lg.SetOutput(logger, logger)
 		}
 	}
