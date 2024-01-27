@@ -6,19 +6,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Ret struct {
+	Code    int    `json:"code"`
+	Data    any    `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
 func AbortWithError(c *gin.Context, code int, message string) {
-	c.AbortWithStatusJSON(code, gin.H{
-		"code":    code,
-		"message": message,
+	c.AbortWithStatusJSON(code, Ret{
+		Code:    code,
+		Message: message,
 	})
 }
 
 func StatusOk(c *gin.Context, data any) {
-	c.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"success": "OK",
-		"data":    data,
+	ReturnWithStatus(c, http.StatusOK, Ret{
+		Code: 0,
+		Data: data,
 	})
+}
+
+func ReturnWithStatus(c *gin.Context, code int, data any) {
+	c.JSON(code, data)
 }
 
 type Handler func() (data any, statusCode int, err error)
