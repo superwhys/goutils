@@ -122,11 +122,17 @@ func (cli *Client) DoRequest(ctx context.Context, url, method string, queryParam
 }
 
 func (cli *Client) Get(ctx context.Context, url string, queryParams Params, header *Header, callBack ...HandleFunc) *Response {
-	cli.Use(callBack...)
 	return cli.DoRequest(ctx, url, http.MethodGet, queryParams, header, nil, callBack...)
 }
 
-func (cli *Client) Post(ctx context.Context, url string, queryParams Params, header *Header, body []byte, callBack ...HandleFunc) *Response {
-	cli.Use(callBack...)
-	return cli.DoRequest(ctx, url, http.MethodPost, queryParams, header, body, callBack...)
+func (cli *Client) Post(ctx context.Context, url string, body []byte, header *Header, callBack ...HandleFunc) *Response {
+	return cli.DoRequest(ctx, url, http.MethodPost, nil, header, body, callBack...)
+}
+
+func (cli *Client) Delete(ctx context.Context, url string, body []byte, header *Header, callBack ...HandleFunc) *Response {
+	return cli.DoRequest(ctx, url, http.MethodDelete, nil, header, body, callBack...)
+}
+
+func (cli *Client) Put(ctx context.Context, url string, body []byte, header *Header, callBack ...HandleFunc) *Response {
+	return cli.DoRequest(ctx, url, http.MethodPut, nil, header, body, callBack...)
 }
