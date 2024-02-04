@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/goccy/go-json v0.10.2
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1
 	github.com/hashicorp/consul/api v1.26.1
