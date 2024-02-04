@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -13,7 +14,8 @@ import (
 )
 
 const (
-	UnAuthInfo = "Authorization failure"
+	UnAuthInfo          = "Authorization failure"
+	TokenNoBearerPrefix = "Authorization: Bearer your_access_token"
 )
 
 func GenerateJWTAuth(signKey string, claims jwt.Claims) (string, error) {
@@ -27,11 +29,23 @@ func GenerateJWTAuth(signKey string, claims jwt.Claims) (string, error) {
 	return tokenStr, nil
 }
 
+func jwtTokenCheck(token string) (bool, string, string) {
+	if token == "" {
+		return false, "", UnAuthInfo
+	}
+
+	if !strings.HasPrefix(token, "Bearer ") {
+		return false, "", TokenNoBearerPrefix
+	}
+	return true, strings.Replace(token, "Bearer ", "", 1), ""
+}
+
 func JWTMiddleware(signKey string, claimsTmp jwt.Claims) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		if tokenString == "" {
-			ginutils.AbortWithError(c, http.StatusUnauthorized, UnAuthInfo)
+		headerToken := c.GetHeader("Authorization")
+		valid, tokenString, errMsg := jwtTokenCheck(headerToken)
+		if !valid {
+			ginutils.AbortWithError(c, http.StatusUnauthorized, errMsg)
 			return
 		}
 
