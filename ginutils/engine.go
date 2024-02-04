@@ -13,14 +13,15 @@ type Engine struct {
 	*gin.Engine
 }
 
-func New() *Engine {
-	engine := gin.New()
-
+func New(middlewares ...gin.HandlerFunc) *Engine {
 	if !lg.IsDebug() {
 		gin.SetMode(gin.ReleaseMode)
 	}
+	engine := gin.New()
+
 	engine.MaxMultipartMemory = 100 << 20
 	engine.Use(lg.LoggerMiddleware(), gin.Recovery())
+	engine.Use(middlewares...)
 
 	return &Engine{engine}
 }
@@ -32,7 +33,7 @@ func (e *Engine) RegisterRouter(ctx context.Context, method, path string, handle
 			return
 		}
 
-		returnData, statusCode, err := handler.HandleFunc()
+		returnData, statusCode, err := handler.HandleFunc(c)
 		if err != nil {
 			AbortWithError(c, statusCode, fmt.Sprintf("%v handler error", lg.StructName(handler)))
 			return
