@@ -15,6 +15,7 @@ import (
 
 const (
 	UnAuthInfo          = "Authorization failure"
+	TokenExpired        = "Authorization: Token is expired"
 	TokenNoBearerPrefix = "Authorization: Bearer your_access_token"
 )
 
@@ -64,7 +65,11 @@ func JWTMiddleware(signKey string, claimsTmp jwt.Claims) gin.HandlerFunc {
 
 		if err != nil {
 			lg.Errorf("jwt parse error: %v", err)
-			ginutils.AbortWithError(c, http.StatusUnauthorized, UnAuthInfo)
+			message := UnAuthInfo
+			if errors.Is(err, jwt.ErrTokenExpired) {
+				message = TokenExpired
+			}
+			ginutils.AbortWithError(c, http.StatusUnauthorized, message)
 			return
 		}
 

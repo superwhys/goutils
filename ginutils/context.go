@@ -1,6 +1,7 @@
 package ginutils
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ func AbortWithError(c *gin.Context, code int, message string) {
 		Code:    code,
 		Message: message,
 	})
+	c.Error(errors.New(message))
 }
 
 func StatusOk(c *gin.Context, data any) {
