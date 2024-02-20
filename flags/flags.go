@@ -98,7 +98,7 @@ func Parse() {
 			}
 
 			lg.Infof("set logger to file: %v", shared.GetLogFileName())
-			lg.SetOutput(logger, logger)
+			lg.SetDefaultLoggerOutput(logger, logger)
 		}
 	}
 
@@ -135,7 +135,7 @@ func Parse() {
 	if config != nil && *config != "" {
 		v.SetConfigFile(*config)
 		if err := v.ReadInConfig(); err != nil {
-			lg.Error(fmt.Sprintf("Failed to read on local file, ", err))
+			lg.Error(fmt.Sprintf("Failed to read on local file: %v", err))
 		} else {
 			lg.Info(fmt.Sprintf("Read config from local file: %v!", *config))
 		}
