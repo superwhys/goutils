@@ -39,11 +39,11 @@ func IsInsideDockerContainer() bool {
 func init() {
 	addrs, err := net.LookupHost("host.docker.internal")
 	if err == nil && len(addrs) > 0 && IsInsideDockerContainer() {
+		lg.Debugf("is inside docker container, addrs: %v", addrs)
 		HostAddress = addrs[0]
 		return
 	}
 	HostAddress = "127.0.0.1"
-	// HostAddress = "10.211.55.5"
 }
 
 var (
