@@ -184,7 +184,7 @@ func Infoc(ctx context.Context, msg string, v ...interface{}) {
 	if len(msg) > 0 || len(v) > 0 {
 		ctx = With(ctx, msg, v...)
 	}
-	logc(ctx, infoLog)
+	logc(ctx, logger.infoLog)
 }
 
 func Debugc(ctx context.Context, msg string, v ...interface{}) {
@@ -195,19 +195,19 @@ func Debugc(ctx context.Context, msg string, v ...interface{}) {
 	if len(msg) > 0 || len(v) > 0 {
 		ctx = With(ctx, msg, v...)
 	}
-	logc(ctx, debugLog)
+	logc(ctx, logger.debugLog)
 }
 
 func Errorc(ctx context.Context, msg string, v ...interface{}) {
 	if len(msg) > 0 || len(v) > 0 {
 		ctx = With(ctx, msg, v...)
 	}
-	logc(ctx, errLog)
+	logc(ctx, logger.errLog)
 }
 
 func Warnc(ctx context.Context, msg string, v ...interface{}) {
 	if len(msg) > 0 || len(v) > 0 {
 		ctx = With(ctx, msg, v...)
 	}
-	logc(ctx, warnLog)
+	logc(ctx, logger.warnLog)
 }

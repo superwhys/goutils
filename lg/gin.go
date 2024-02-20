@@ -17,7 +17,7 @@ const (
 	cyan    = "\033[97;46m"
 	reset   = "\033[0m"
 
-	logMsg = "| [CNNS] | %s %v %s | %13v | %15s | %s %4v %s| %15s | %-7s"
+	logMsg = "| %s %v %s | %13v | %15s | %s %4v %s| %15s | %-7s"
 )
 
 func statusCodeColor(code int) string {

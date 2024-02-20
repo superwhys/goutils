@@ -8,33 +8,19 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 var (
-	debug                                        = false
-	infoLog, debugLog, warnLog, errLog, fatalLog *log.Logger
+	debug  = false
+	logger *Logger
 )
 
 func init() {
-
-	var stdout io.Writer = os.Stdout
-	var stderr io.Writer = os.Stderr
-
-	infoLog = log.New(stdout, color.GreenString("[INFO]"), log.LstdFlags|log.LUTC)
-	debugLog = log.New(stdout, color.CyanString("[DEBUG]"), log.LstdFlags|log.Lshortfile|log.LUTC)
-	errLog = log.New(stderr, color.RedString("[ERROR]"), log.LstdFlags|log.Lshortfile|log.LUTC)
-	warnLog = log.New(stdout, color.YellowString("[WARN]"), log.LstdFlags|log.LUTC)
-	fatalLog = log.New(stderr, color.RedString("[FATAL]"), log.LstdFlags|log.Llongfile|log.LUTC)
+	logger = New()
 }
 
-func SetOutput(stdout, stderr io.Writer) {
-	infoLog.SetOutput(stdout)
-	debugLog.SetOutput(stdout)
-	errLog.SetOutput(stderr)
-	warnLog.SetOutput(stdout)
-	fatalLog.SetOutput(stderr)
+func SetDefaultLoggerOutput(stdout, stderr io.Writer) {
+	logger.SetLoggerOutput(stdout, stderr)
 }
 
 func IsDebug() bool {
@@ -53,7 +39,7 @@ func doLog(log *log.Logger, msg string) {
 
 func Error(v ...interface{}) {
 	if v[0] != nil {
-		doLog(errLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
+		doLog(logger.errLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
 	}
 }
 
@@ -65,26 +51,26 @@ func PanicError(err error, msg ...interface{}) {
 		} else {
 			s = err.Error()
 		}
-		doLog(errLog, s)
+		doLog(logger.errLog, s)
 		panic(err)
 	}
 }
 
 func Warn(v ...interface{}) {
 	if v[0] != nil {
-		doLog(warnLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
+		doLog(logger.warnLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
 	}
 }
 
 func Info(v ...interface{}) {
 	if v[0] != nil {
-		doLog(infoLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
+		doLog(logger.infoLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
 	}
 }
 
 func Debug(v ...interface{}) {
 	if debug && v[0] != nil {
-		doLog(debugLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
+		doLog(logger.debugLog, strings.TrimSuffix(fmt.Sprintln(v...), "\n"))
 	}
 }
 
@@ -93,7 +79,7 @@ func Fatal(v ...interface{}) {
 	for _, i := range v {
 		msg = append(msg, fmt.Sprintf("%v", i))
 	}
-	doLog(fatalLog, strings.Join(msg, " "))
+	doLog(logger.fatalLog, strings.Join(msg, " "))
 	os.Exit(1)
 }
 
@@ -113,7 +99,7 @@ func Errorf(msg string, v ...interface{}) {
 	} else {
 		s = msg
 	}
-	doLog(errLog, strings.TrimSuffix(s, "\n"))
+	doLog(logger.errLog, strings.TrimSuffix(s, "\n"))
 
 }
 
@@ -124,7 +110,7 @@ func Warnf(msg string, v ...interface{}) {
 	} else {
 		s = msg
 	}
-	doLog(warnLog, s)
+	doLog(logger.warnLog, s)
 }
 
 func Infof(msg string, v ...interface{}) {
@@ -134,7 +120,7 @@ func Infof(msg string, v ...interface{}) {
 	} else {
 		s = msg
 	}
-	doLog(infoLog, s)
+	doLog(logger.infoLog, s)
 }
 
 func Debugf(msg string, v ...interface{}) {
@@ -148,7 +134,7 @@ func Debugf(msg string, v ...interface{}) {
 	} else {
 		s = msg
 	}
-	doLog(debugLog, s)
+	doLog(logger.debugLog, s)
 }
 
 // TimeFuncDuration returns the duration consumed by function.
