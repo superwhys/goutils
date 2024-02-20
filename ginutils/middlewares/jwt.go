@@ -14,6 +14,8 @@ import (
 )
 
 const (
+	AuthHeaderKey = "Authorization"
+
 	UnAuthInfo          = "Authorization failure"
 	TokenExpired        = "Authorization: Token is expired"
 	TokenNoBearerPrefix = "Authorization: Bearer your_access_token"
@@ -43,7 +45,7 @@ func jwtTokenCheck(token string) (bool, string, string) {
 
 func JWTMiddleware(signKey string, claimsTmp jwt.Claims) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		headerToken := c.GetHeader("Authorization")
+		headerToken := c.GetHeader(AuthHeaderKey)
 		valid, tokenString, errMsg := jwtTokenCheck(headerToken)
 		if !valid {
 			ginutils.AbortWithError(c, http.StatusUnauthorized, errMsg)
