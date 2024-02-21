@@ -34,6 +34,7 @@ var (
 	config            *string
 	defaultConfigFile string
 	debug             *bool
+	useConsul         *bool
 
 	manualServices *remoteServices
 
@@ -49,6 +50,7 @@ func OverrideDefaultConfigFile(configFile string) {
 func initFlags() {
 	v.AddConfigPath(".")
 	v.AddConfigPath("./tmp/config/")
+
 	err := v.BindPFlags(pflag.CommandLine)
 	if err != nil {
 		lg.Fatal("BindPFlags Error!")
@@ -64,6 +66,7 @@ func initFlags() {
 
 	config = pflag.StringP("config", "f", defaultConfigFile, "Specify config file to parse. Support json, yaml, toml etc.")
 	debug = pflag.Bool("debug", false, "Set true to enable debug mode")
+	useConsul = pflag.Bool("useConsul", true, "Whether to use the consul function")
 
 	allKeys = append(allKeys, "debug")
 }
@@ -80,7 +83,10 @@ func GetServiceName() string {
 func Parse() {
 	initFlags()
 	pflag.Parse()
-	finder.SetConsulFinderToDefault()
+
+	if *useConsul {
+		finder.SetConsulFinderToDefault()
+	}
 
 	if *debug {
 		lg.EnableDebug()
