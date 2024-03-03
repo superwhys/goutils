@@ -57,13 +57,14 @@ func initFlags() {
 	}
 	shared.PtrServiceName = pflag.String("service", os.Getenv("SERVICE"), "Service name to access the config in remote consul KV store.")
 	shared.PtrConsulAddr = pflag.String("consulAddr", consul.HostAddress+":8500", "Consul address")
-	shared.LogToFile = pflag.Bool("logToFile", false, "is log to file")
-	shared.LogFileName = pflag.String("logFileName", "runlog.log", "log file name")
-	shared.LogMaxSize = pflag.Int("logMaxSize", 10, "log max size")
-	shared.LogMaxBackup = pflag.Int("logMaxBackup", 3, "log max backup")
-	shared.LogMaxAge = pflag.Int("logMaxAge", 30, "log max age")
-	shared.LogCompress = pflag.Bool("logCompress", false, "is compress the log file")
-
+	if shared.LogToFile == nil {
+		shared.LogToFile = pflag.Bool("logToFile", false, "is log to file")
+		shared.LogFileName = pflag.String("logFileName", "runlog.log", "log file name")
+		shared.LogMaxSize = pflag.Int("logMaxSize", 10, "log max size")
+		shared.LogMaxBackup = pflag.Int("logMaxBackup", 3, "log max backup")
+		shared.LogMaxAge = pflag.Int("logMaxAge", 30, "log max age")
+		shared.LogCompress = pflag.Bool("logCompress", false, "is compress the log file")
+	}
 	config = pflag.StringP("config", "f", defaultConfigFile, "Specify config file to parse. Support json, yaml, toml etc.")
 	debug = pflag.Bool("debug", false, "Set true to enable debug mode")
 	useConsul = pflag.Bool("useConsul", true, "Whether to use the consul function")

@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/superwhys/goutils/internal/shared"
 )
 
 var (
@@ -29,6 +31,17 @@ func IsDebug() bool {
 
 func EnableDebug() {
 	debug = true
+}
+
+func EnableLogToFile(filename string, maxSize, maxBackup, maxAge int, logCompress bool) {
+	t := true
+	shared.LogToFile = &t
+	shared.LogFileName = &filename
+	shared.LogMaxSize = &maxSize
+	shared.LogMaxBackup = &maxBackup
+	shared.LogMaxAge = &maxAge
+	shared.LogCompress = &logCompress
+	Infof("redirect log to %v", filename)
 }
 
 func doLog(log *log.Logger, msg string) {
