@@ -44,6 +44,22 @@ func (e *Engine) RegisterRouter(ctx context.Context, method, path string, handle
 	e.Handle(method, path, middlewares...)
 }
 
+func (e *Engine) GET(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	e.RegisterRouter(ctx, http.MethodGet, path, handler, middlewares...)
+}
+
+func (e *Engine) POST(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	e.RegisterRouter(ctx, http.MethodPost, path, handler, middlewares...)
+}
+
+func (e *Engine) PUT(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	e.RegisterRouter(ctx, http.MethodPut, path, handler, middlewares...)
+}
+
+func (e *Engine) DELETE(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	e.RegisterRouter(ctx, http.MethodDelete, path, handler, middlewares...)
+}
+
 func (rg *RouterGroup) Group(relativePath string, handlers ...gin.HandlerFunc) *RouterGroup {
 	return &RouterGroup{
 		rg.RouterGroup.Group(relativePath, handlers...),
