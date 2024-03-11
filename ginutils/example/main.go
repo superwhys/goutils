@@ -35,7 +35,8 @@ func main() {
 	flags.Parse()
 
 	router := ginutils.New()
-	router.GET(context.Background(), "/api/test", &TestHandler{})
+	grp := router.Group("/v1")
+	grp.GET(context.Background(), "/api/test", &TestHandler{})
 
 	srv := service.NewSuperService(
 		service.WithHttpHandler("", router),

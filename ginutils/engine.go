@@ -10,12 +10,13 @@ import (
 	"github.com/superwhys/goutils/lg"
 )
 
-type Engine struct {
-	*gin.Engine
-}
-
 type RouterGroup struct {
 	*gin.RouterGroup
+}
+
+type Engine struct {
+	*RouterGroup
+	*gin.Engine
 }
 
 func New(middlewares ...gin.HandlerFunc) *Engine {
@@ -28,49 +29,41 @@ func New(middlewares ...gin.HandlerFunc) *Engine {
 	engine.Use(lg.LoggerMiddleware(), gin.Recovery())
 	engine.Use(middlewares...)
 
-	return &Engine{engine}
-}
-
-func (e *Engine) Group(relativePath string, handlers ...gin.HandlerFunc) *RouterGroup {
-	return &RouterGroup{
-		e.Engine.Group(relativePath, handlers...),
+	return &Engine{
+		RouterGroup: &RouterGroup{
+			RouterGroup: &engine.RouterGroup,
+		},
+		Engine: engine,
 	}
 }
 
-func (e *Engine) RegisterRouter(ctx context.Context, method, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
-	handlers := make([]gin.HandlerFunc, 0, len(middlewares)+1)
-	handlers = append(handlers, baseHandleFunc(ctx, handler))
-	handlers = append(handlers, middlewares...)
-	e.Handle(method, path, middlewares...)
-}
-
-func (e *Engine) GET(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
-	e.RegisterRouter(ctx, http.MethodGet, path, handler, middlewares...)
-}
-
-func (e *Engine) POST(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
-	e.RegisterRouter(ctx, http.MethodPost, path, handler, middlewares...)
-}
-
-func (e *Engine) PUT(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
-	e.RegisterRouter(ctx, http.MethodPut, path, handler, middlewares...)
-}
-
-func (e *Engine) DELETE(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
-	e.RegisterRouter(ctx, http.MethodDelete, path, handler, middlewares...)
-}
-
-func (rg *RouterGroup) Group(relativePath string, handlers ...gin.HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Group(relativePath string, handlers ...gin.HandlerFunc) *RouterGroup {
 	return &RouterGroup{
-		rg.RouterGroup.Group(relativePath, handlers...),
+		g.RouterGroup.Group(relativePath, handlers...),
 	}
 }
 
-func (rg *RouterGroup) RegisterRouter(ctx context.Context, method, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+func (g *RouterGroup) GET(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	g.RegisterRouter(ctx, http.MethodGet, path, handler, middlewares...)
+}
+
+func (g *RouterGroup) POST(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	g.RegisterRouter(ctx, http.MethodPost, path, handler, middlewares...)
+}
+
+func (g *RouterGroup) PUT(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	g.RegisterRouter(ctx, http.MethodPut, path, handler, middlewares...)
+}
+
+func (g *RouterGroup) DELETE(ctx context.Context, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
+	g.RegisterRouter(ctx, http.MethodDelete, path, handler, middlewares...)
+}
+
+func (g *RouterGroup) RegisterRouter(ctx context.Context, method, path string, handler RouteHandler, middlewares ...gin.HandlerFunc) {
 	handlers := make([]gin.HandlerFunc, 0, len(middlewares)+1)
 	handlers = append(handlers, baseHandleFunc(ctx, handler))
 	handlers = append(handlers, middlewares...)
-	rg.Handle(method, path, handlers...)
+	g.Handle(method, path, handlers...)
 }
 
 func baseHandleFunc(ctx context.Context, handler RouteHandler) gin.HandlerFunc {
