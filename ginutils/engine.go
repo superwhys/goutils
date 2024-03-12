@@ -17,7 +17,7 @@ type Engine struct {
 	engine *gin.Engine
 }
 
-func New(middlewares ...gin.HandlerFunc) *Engine {
+func NewGinEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
 	if !lg.IsDebug() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -27,6 +27,11 @@ func New(middlewares ...gin.HandlerFunc) *Engine {
 	engine.Use(lg.LoggerMiddleware(), gin.Recovery())
 	engine.Use(middlewares...)
 
+	return engine
+}
+
+func New(middlewares ...gin.HandlerFunc) *Engine {
+	engine := NewGinEngine(middlewares...)
 	return &Engine{
 		RouterGroup: &RouterGroup{
 			&engine.RouterGroup,
