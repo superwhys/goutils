@@ -110,10 +110,30 @@ func (c *Client) GetAddress(service string) string {
 	return c.GetAddressWithTag(service, "")
 }
 
-func (c *Client) GetAddressWithTag(service string, tag string) string {
-	ip := net.ParseIP(service)
+func parseIp(addr string) bool {
+	ip := net.ParseIP(addr)
 	if ip != nil {
-		return ip.String()
+		return true
+	}
+
+	return false
+}
+
+func checkip(addr string) bool {
+	old := addr
+	addr, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		addr = old
+		if strings.Contains(err.Error(), "missing port in address") {
+			return parseIp(addr)
+		}
+	}
+	return parseIp(addr)
+}
+
+func (c *Client) GetAddressWithTag(service string, tag string) string {
+	if checkip(service) {
+		return service
 	}
 
 	cs := c.GetAllAddressWithTag(service, tag)
