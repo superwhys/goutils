@@ -117,6 +117,9 @@ func (c *Client) GetAddressWithTag(service string, tag string) string {
 	}
 
 	cs := c.GetAllAddressWithTag(service, tag)
+	if len(cs) == 0 {
+		return ""
+	}
 	addr := cs[0]
 	lg.Debugf("Found %s:%s -> %s in consul.", service, tag, addr)
 	return addr
