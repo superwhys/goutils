@@ -111,6 +111,9 @@ func (c *Client) GetAddress(service string) string {
 }
 
 func parseIp(addr string) bool {
+	if addr == "localhost" {
+		return true
+	}
 	ip := net.ParseIP(addr)
 	if ip != nil {
 		return true
