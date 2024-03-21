@@ -65,36 +65,48 @@ func registerInstance(instance, database string, conf *config) {
 	}()
 }
 
-func RegisterMqlAuthModel(autoMigrate bool, ms ...MqlAuthModel) {
-	for _, m := range ms {
-		if _, exists := getInstanceClientFunc(m.InstanceName(), m.DatabaseName()); exists {
-			continue
-		}
+func registerAndMigrate(instance, database string, auth AuthConf, ms ...MqlModel) {
+	if _, exists := getInstanceClientFunc(instance, database); !exists {
 		conf := &config{
-			instanceName: m.InstanceName(),
-			database:     m.DatabaseName(),
-			AuthConf:     m.GetAuthConf(),
+			instanceName: instance,
+			database:     database,
+			AuthConf:     auth,
 		}
-
-		registerInstance(m.InstanceName(), m.DatabaseName(), conf)
+		registerInstance(instance, database, conf)
 	}
 }
 
-func RegisterMqlModel(auth AuthConf, autoMigrate bool, ms ...MqlModel) {
-	for _, m := range ms {
-		if _, exists := getInstanceClientFunc(m.InstanceName(), m.DatabaseName()); exists {
-			continue
-		}
-		conf := &config{
-			instanceName: m.InstanceName(),
-			database:     m.DatabaseName(),
-			AuthConf:     auth,
-		}
-
-		registerInstance(m.InstanceName(), m.DatabaseName(), conf)
-
-		if autoMigrate {
-			GetMysqlDByModel(m).AutoMigrate(m)
+func validateModels(ms ...MqlModel) (instance string, database string) {
+	for idx, m := range ms {
+		if idx == 0 {
+			instance = m.InstanceName()
+			database = m.DatabaseName()
+		} else if instance != m.InstanceName() || database != m.DatabaseName() {
+			panic(fmt.Sprintf("model instance: %s-%s not equal with other model: %s-%s", m.InstanceName(), m.DatabaseName(), instance, database))
 		}
 	}
+	return instance, database
+}
+
+func RegisterMqlAuthModel(ms ...MqlAuthModel) {
+	instance, database := validateModels(toInterfaceSlice(ms)...)
+	var auth AuthConf
+	if len(ms) > 0 {
+		auth = ms[0].GetAuthConf()
+	}
+	registerAndMigrate(instance, database, auth, toInterfaceSlice(ms)...)
+}
+
+func RegisterMqlModel(auth AuthConf, autoMigrate bool, ms ...MqlModel) {
+	instance, database := validateModels(ms...)
+	registerAndMigrate(instance, database, auth, ms...)
+}
+
+func toInterfaceSlice[T MqlModel](ms []T) []MqlModel {
+	result := make([]MqlModel, len(ms))
+	for i, m := range ms {
+		result[i] = m
+	}
+
+	return result
 }

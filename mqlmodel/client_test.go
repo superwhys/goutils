@@ -32,7 +32,7 @@ func (um *UserModel) GetAuthConf() AuthConf {
 }
 
 func TestDialDB(t *testing.T) {
-	RegisterMqlAuthModel(true, &UserModel{})
+	RegisterMqlAuthModel(&UserModel{})
 	var resp []*UserModel
 	if err := GetMysqlDByModel(&UserModel{}).Find(&resp).Error; err != nil {
 		lg.Errorf("get user data error: %v", err)
