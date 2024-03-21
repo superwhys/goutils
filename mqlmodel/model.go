@@ -28,22 +28,29 @@ var (
 	dbInstanceClientFuncMap = make(map[string]getClientFunc)
 )
 
-func getMysqlDB(instance string) *gorm.DB {
-	clientFunc, ok := dbInstanceClientFuncMap[instance]
+func getMysqlDB(instance, database string) *gorm.DB {
+	clientFunc, ok := getInstanceClientFunc(instance, database)
 	if !ok {
-		panic(fmt.Sprintf("db instance %s not found", instance))
+		panic(fmt.Sprintf("db instance %s-%s not found", instance, database))
 	}
 
 	return clientFunc().DB()
 }
 
 func GetMysqlDByModel(m MqlModel) *gorm.DB {
-	db := getMysqlDB(m.InstanceName()).Model(m)
+	db := getMysqlDB(m.InstanceName(), m.DatabaseName()).Model(m)
 	return db
 }
 
-func registerInstance(instance string, conf *config) {
-	dbInstanceClientFuncMap[instance] = func() getClientFunc {
+func getInstanceClientFunc(instance, database string) (getClientFunc, bool) {
+	key := fmt.Sprintf("%v-%v", instance, database)
+	f, exists := dbInstanceClientFuncMap[key]
+	return f, exists
+}
+
+func registerInstance(instance, database string, conf *config) {
+	key := fmt.Sprintf("%v-%v", instance, database)
+	dbInstanceClientFuncMap[key] = func() getClientFunc {
 		var cli *client
 		var once sync.Once
 
@@ -60,7 +67,7 @@ func registerInstance(instance string, conf *config) {
 
 func RegisterMqlAuthModel(autoMigrate bool, ms ...MqlAuthModel) {
 	for _, m := range ms {
-		if _, exists := dbInstanceClientFuncMap[m.InstanceName()]; exists {
+		if _, exists := getInstanceClientFunc(m.InstanceName(), m.DatabaseName()); exists {
 			continue
 		}
 		conf := &config{
@@ -69,13 +76,13 @@ func RegisterMqlAuthModel(autoMigrate bool, ms ...MqlAuthModel) {
 			AuthConf:     m.GetAuthConf(),
 		}
 
-		registerInstance(m.InstanceName(), conf)
+		registerInstance(m.InstanceName(), m.DatabaseName(), conf)
 	}
 }
 
 func RegisterMqlModel(auth AuthConf, autoMigrate bool, ms ...MqlModel) {
 	for _, m := range ms {
-		if _, exists := dbInstanceClientFuncMap[m.InstanceName()]; exists {
+		if _, exists := getInstanceClientFunc(m.InstanceName(), m.DatabaseName()); exists {
 			continue
 		}
 		conf := &config{
@@ -84,7 +91,7 @@ func RegisterMqlModel(auth AuthConf, autoMigrate bool, ms ...MqlModel) {
 			AuthConf:     auth,
 		}
 
-		registerInstance(m.InstanceName(), conf)
+		registerInstance(m.InstanceName(), m.DatabaseName(), conf)
 
 		if autoMigrate {
 			GetMysqlDByModel(m).AutoMigrate(m)
