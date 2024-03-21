@@ -80,6 +80,7 @@ func configDB(sqlDB *sql.DB) {
 
 func DialGorm(service string, opts ...OptionFunc) (*gorm.DB, error) {
 	address := finder.GetServiceFinder().GetAddress(service)
+	lg.Debugf("Discover mysql addr: %v", address)
 
 	dsn := generateDSN(address, opts...)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{

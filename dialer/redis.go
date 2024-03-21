@@ -5,6 +5,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/superwhys/goutils/cache"
+	"github.com/superwhys/goutils/lg"
 	"github.com/superwhys/goutils/service/finder"
 )
 
@@ -28,6 +29,7 @@ func consulRedisDial(addr string, db int, password ...string) func() (redis.Conn
 			if serviceAddr == "" {
 				serviceAddr = addr
 			}
+			lg.Debugf("Discover redis addr: %v", serviceAddr)
 			addrCache.Set(addr, serviceAddr)
 		}
 
