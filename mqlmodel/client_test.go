@@ -16,23 +16,15 @@ func (um *UserModel) TableName() string {
 	return "user"
 }
 
-func (um *UserModel) InstanceName() string {
-	return "localhost:3306"
-}
-
-func (um *UserModel) DatabaseName() string {
-	return "sql_test"
-}
-
-func (um *UserModel) GetAuthConf() AuthConf {
-	return AuthConf{
+func TestDialDB(t *testing.T) {
+	auth := AuthConf{
+		Instance: "localhost:3306",
+		Database: "sql_test",
 		Username: "root",
 		Password: "yang4869",
 	}
-}
 
-func TestDialDB(t *testing.T) {
-	RegisterMqlAuthModel(&UserModel{})
+	RegisterMqlModel(auth, &UserModel{})
 	var resp []*UserModel
 	if err := GetMysqlDByModel(&UserModel{}).Find(&resp).Error; err != nil {
 		lg.Errorf("get user data error: %v", err)
