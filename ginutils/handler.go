@@ -19,8 +19,8 @@ const (
 
 type RouteHandler interface {
 	GetParamsBindType() BindType
-	GetRequestParams() any
-	SetRequestParams(any)
+	ParamsGetter() any
+	ParamsSetter(any)
 	HandleFunc(c *gin.Context) (data any, statusCode int, err error)
 }
 
@@ -32,11 +32,11 @@ func (h *DefaultHandler) GetParamsBindType() BindType {
 	return BodyType
 }
 
-func (h *DefaultHandler) GetRequestParams() any {
+func (h *DefaultHandler) ParamsGetter() any {
 	return h.Params
 }
 
-func (h *DefaultHandler) SetRequestParams(data any) {
+func (h *DefaultHandler) ParamsSetter(data any) {
 	h.Params = data
 }
 
@@ -57,7 +57,7 @@ func BaseHandleFuncWithContext(ctx context.Context, handler RouteHandler) gin.Ha
 }
 
 func baseHandler(c *gin.Context, ctx context.Context, handler RouteHandler) {
-	data := handler.GetRequestParams()
+	data := handler.ParamsGetter()
 	if data != nil {
 		if dataT := reflect.TypeOf(data); dataT.Kind() != reflect.Pointer {
 			lg.Errorc(ctx, "handler request params if not a pointer")
@@ -81,7 +81,7 @@ func baseHandler(c *gin.Context, ctx context.Context, handler RouteHandler) {
 			return
 		}
 
-		handler.SetRequestParams(data)
+		handler.ParamsSetter(data)
 	}
 
 	returnData, statusCode, err := handler.HandleFunc(c)

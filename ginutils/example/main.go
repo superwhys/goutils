@@ -20,7 +20,7 @@ type TestHandler struct {
 	ginutils.DefaultHandler
 }
 
-func (h *TestHandler) GetRequestParams() any {
+func (h *TestHandler) ParamsGetter() any {
 	return &Params{}
 }
 
