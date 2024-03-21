@@ -6,11 +6,13 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.1
 	github.com/fatih/color v1.16.0
 	github.com/fullstorydev/grpcui v1.3.3
+	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-logfmt/logfmt v0.6.0
+	github.com/go-sql-driver/mysql v1.7.0
 	github.com/goccy/go-json v0.10.2
 	github.com/golang-jwt/jwt/v5 v5.2.0
-	github.com/gomodule/redigo v1.9.2
+	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1
 	github.com/hashicorp/consul/api v1.26.1
@@ -43,6 +45,7 @@ require (
 	cloud.google.com/go/firestore v1.14.0 // indirect
 	cloud.google.com/go/longrunning v0.5.3 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
+	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/bufbuild/protocompile v0.6.0 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
@@ -56,7 +59,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
-	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -64,6 +66,9 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/gorilla/context v1.1.1 // indirect
+	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
