@@ -65,7 +65,7 @@ func registerInstance(instance, database string, conf *config) {
 	}()
 }
 
-func registerAndMigrate(instance, database string, auth AuthConf, ms ...MqlModel) {
+func registerAndMigrate(instance, database string, auth AuthConf) {
 	if _, exists := getInstanceClientFunc(instance, database); !exists {
 		conf := &config{
 			instanceName: instance,
@@ -94,12 +94,12 @@ func RegisterMqlAuthModel(ms ...MqlAuthModel) {
 	if len(ms) > 0 {
 		auth = ms[0].GetAuthConf()
 	}
-	registerAndMigrate(instance, database, auth, toInterfaceSlice(ms)...)
+	registerAndMigrate(instance, database, auth)
 }
 
-func RegisterMqlModel(auth AuthConf, autoMigrate bool, ms ...MqlModel) {
+func RegisterMqlModel(auth AuthConf, ms ...MqlModel) {
 	instance, database := validateModels(ms...)
-	registerAndMigrate(instance, database, auth, ms...)
+	registerAndMigrate(instance, database, auth)
 }
 
 func toInterfaceSlice[T MqlModel](ms []T) []MqlModel {
