@@ -36,9 +36,13 @@ func WithDb(db int) RedisStoreOptionFunc {
 	}
 }
 
-func WithKeyPairs(keyPairs ...[]byte) RedisStoreOptionFunc {
+func WithKeyPairs(keyPairs ...string) RedisStoreOptionFunc {
 	return func(o *RedisStoreOptions) {
-		o.keyPairs = append(o.keyPairs, keyPairs...)
+		var bs [][]byte
+		for _, kp := range keyPairs {
+			bs = append(bs, []byte(kp))
+		}
+		o.keyPairs = append(o.keyPairs, bs...)
 	}
 }
 
