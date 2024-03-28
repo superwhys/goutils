@@ -1,4 +1,4 @@
-package http
+package httputils
 
 type Params map[string]string
 
