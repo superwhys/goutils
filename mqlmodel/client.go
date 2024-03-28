@@ -10,8 +10,6 @@ import (
 
 type config struct {
 	AuthConf
-	instanceName string
-	database     string
 }
 
 type client struct {
@@ -22,13 +20,13 @@ type client struct {
 func (c *config) TrimSpace() {
 	c.Username = strings.TrimSpace(c.Username)
 	c.Password = strings.TrimSpace(c.Password)
-	c.instanceName = strings.TrimSpace(c.instanceName)
-	c.database = strings.TrimSpace(c.database)
+	c.Instance = strings.TrimSpace(c.Instance)
+	c.Database = strings.TrimSpace(c.Database)
 }
 
 func NewClient(conf *config) *client {
 	conf.TrimSpace()
-	if conf.instanceName == "" {
+	if conf.Instance == "" {
 		panic("mqlClient: instance can not be empty")
 	}
 
@@ -39,9 +37,9 @@ func NewClient(conf *config) *client {
 
 func (c *client) dialGorm() (*gorm.DB, error) {
 	return dialer.DialGorm(
-		c.config.instanceName,
+		c.config.Instance,
 		dialer.WithAuth(c.config.Username, c.config.Password),
-		dialer.WithDBName(c.config.database),
+		dialer.WithDBName(c.config.Database),
 	)
 }
 

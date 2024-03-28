@@ -80,9 +80,7 @@ func RegisterMqlModel(auth AuthConf, ms ...MqlModel) {
 	}
 
 	conf := &config{
-		instanceName: auth.Instance,
-		database:     auth.Database,
-		AuthConf:     auth,
+		AuthConf: auth,
 	}
 	registerInstance(conf)
 
