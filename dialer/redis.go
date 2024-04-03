@@ -4,13 +4,8 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-	"github.com/superwhys/goutils/cache"
 	"github.com/superwhys/goutils/lg"
 	"github.com/superwhys/goutils/service/finder"
-)
-
-var (
-	addrCache = cache.NewMemoryCache(time.Second * 20)
 )
 
 func DialRedisPool(addr string, db int, maxIdle int, password ...string) *redis.Pool {
@@ -24,14 +19,11 @@ func DialRedisPool(addr string, db int, maxIdle int, password ...string) *redis.
 func consulRedisDial(addr string, db int, password ...string) func() (redis.Conn, error) {
 	return func() (redis.Conn, error) {
 		var serviceAddr string
-		if err := addrCache.Get(addr, &serviceAddr); err != nil {
-			serviceAddr = finder.GetServiceFinder().GetAddress(addr)
-			if serviceAddr == "" {
-				serviceAddr = addr
-			}
-			lg.Debugf("Discover redis addr: %v", serviceAddr)
-			addrCache.Set(addr, serviceAddr)
+		serviceAddr = finder.GetServiceFinder().GetAddress(addr)
+		if serviceAddr == "" {
+			serviceAddr = addr
 		}
+		lg.Debugf("Discover redis addr: %v", serviceAddr)
 
 		options := []redis.DialOption{
 			redis.DialDatabase(db),
