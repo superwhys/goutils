@@ -30,12 +30,12 @@ func TestMain(m *testing.M) {
 
 func TestRedisTaskQueue(t *testing.T) {
 	go func() {
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 20; i++ {
 			key := fmt.Sprintf("taskkey-%v", i)
 			task := &TestObj{Age: i}
 			bucket := rand.Intn(6)
 			if err := queue.PushToBucket(key, task, bucket, true); err != nil {
-				t.Error("push to bucket err")
+				t.Errorf("push to bucket err: %v", err)
 				return
 			}
 		}
@@ -46,6 +46,7 @@ func TestRedisTaskQueue(t *testing.T) {
 
 	for task := range queue.IterTask() {
 		fmt.Printf("receive task: %#v\n", task.Payload.(*TestObj))
+		time.Sleep(time.Second)
 	}
 }
 

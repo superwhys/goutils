@@ -92,28 +92,11 @@ func (q *TaskQueue) checkWorkInProcess(conn redis.Conn, key string) error {
 }
 
 func (q *TaskQueue) pushToBucket(conn redis.Conn, bucket int, key string, val []byte) error {
-	// open a transaction
-	if err := conn.Send("MULTI"); err != nil {
-		return errors.Wrap(err, "multi")
+	commands := [][]any{
+		{"RPUSH", q.genQueueKey(bucket), val},
+		{"SADD", q.genWipKey(), key},
 	}
-
-	if err := conn.Send("RPUSH", q.genQueueKey(bucket), val); err != nil {
-		return errors.Wrap(err, "push list")
-	}
-
-	if err := conn.Send("SADD", q.genWipKey(), key); err != nil {
-		return errors.Wrap(err, "add set")
-	}
-
-	if err := conn.Send("EXEC"); err != nil {
-		return errors.Wrap(err, "exec")
-	}
-
-	if err := conn.Flush(); err != nil {
-		return errors.Wrap(err, "flush")
-	}
-
-	return nil
+	return q.rc.TransactionPipeline(conn, nil, commands...)
 }
 
 func (q *TaskQueue) PushToBucket(key string, obj any, bucket int, noDup bool) error {

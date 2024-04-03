@@ -3,6 +3,7 @@ package redisutils
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -38,6 +39,52 @@ func (rc *RedisClient) Do(command string, args ...any) (reply any, err error) {
 	defer conn.Close()
 
 	return conn.Do(command, args...)
+}
+
+func (rc *RedisClient) stringToAny(datas []string) []any {
+	resp := make([]any, 0, len(datas))
+	for _, data := range datas {
+		resp = append(resp, data)
+	}
+	return resp
+}
+
+func (rc *RedisClient) DoWithTransactionPipeline(watchKey []string, commands ...[]any) error {
+	conn := rc.GetConn()
+	defer conn.Close()
+
+	return rc.TransactionPipeline(conn, watchKey, commands...)
+}
+
+func (rc *RedisClient) TransactionPipeline(conn redis.Conn, watchKey []string, commands ...[]any) error {
+	if len(watchKey) != 0 {
+		_, err := conn.Do("WATCH", rc.stringToAny(watchKey)...)
+		if err != nil {
+			return errors.Wrap(err, "watchKey")
+		}
+	}
+
+	if err := conn.Send("MULTI"); err != nil {
+		log.Fatalf("Failed to send MULTI: %v", err)
+	}
+
+	for _, command := range commands {
+		commandName := command[0].(string)
+		args := command[1:]
+		if err := conn.Send(commandName, args...); err != nil {
+			return errors.Errorf("send command: %v args: %v error: %v", commandName, args, err)
+		}
+	}
+
+	if err := conn.Flush(); err != nil {
+		return errors.Wrap(err, "flush")
+	}
+
+	if _, err := conn.Do("EXEC"); err != nil {
+		return errors.Wrap(err, "exec")
+	}
+
+	return nil
 }
 
 func (rc *RedisClient) SetWithTTL(key string, value any, ttl time.Duration) error {
