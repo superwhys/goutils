@@ -99,12 +99,12 @@ func (c *RedisCache) GetOrCreateWithTTL(key string, ttl time.Duration, creator C
 	// no data in redis
 	if err != nil && errors.Is(err, redis.ErrNil) {
 		p = newPayload(creator())
-		data, err := json.Marshal(p)
+		data, err = json.Marshal(p)
 		if err != nil {
 			return errors.Wrap(err, "json.Marshal.redisData")
 		}
 
-		if err := c.setWithTTL(conn, key, data, ttl); err != nil {
+		if err = c.setWithTTL(conn, key, data, ttl); err != nil {
 			return errors.Wrap(err, "redis.setTTL")
 		}
 		return nil
