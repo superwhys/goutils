@@ -76,7 +76,7 @@ func (q *TaskQueue) genWipKey() string {
 }
 
 func (q *TaskQueue) genQueueKey(bucket int) string {
-	return fmt.Sprintf("queue:%v:%v", q.name, q.buckets)
+	return fmt.Sprintf("queue:%v:%v", q.name, bucket)
 }
 
 func (q *TaskQueue) checkWorkInProcess(conn redis.Conn, key string) error {
