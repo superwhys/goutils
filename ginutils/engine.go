@@ -40,6 +40,10 @@ func New(middlewares ...gin.HandlerFunc) *Engine {
 	}
 }
 
+func (e *Engine) Run(addr ...string) error {
+	return e.engine.Run(addr...)
+}
+
 func (e *Engine) GetGinEngine() *gin.Engine {
 	return e.engine
 }

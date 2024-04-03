@@ -6,15 +6,17 @@ import (
 	"net/http"
 	"testing"
 
-	httpUtils "github.com/superwhys/goutils/http"
+	"github.com/gin-gonic/gin"
+	httpUtils "github.com/superwhys/goutils/httputils"
 	"github.com/superwhys/goutils/lg"
 )
 
 type RouteTest struct {
+	DefaultHandler
 	Text string `form:"text"`
 }
 
-func (rt *RouteTest) HandleFunc() (data any, statusCode int, err error) {
+func (rt *RouteTest) HandleFunc(c *gin.Context) (data any, statusCode int, err error) {
 	return fmt.Sprintf("handle text: %v", rt.Text), 200, nil
 }
 
@@ -23,7 +25,6 @@ func TestMain(m *testing.M) {
 
 	engine := New()
 	engine.RegisterRouter(context.Background(), http.MethodGet, "/test", &RouteTest{})
-
 	go engine.Run(":8000")
 
 	m.Run()
