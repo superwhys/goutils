@@ -124,6 +124,24 @@ func (rc *RedisClient) Delete(key string) error {
 	return err
 }
 
+func (rc *RedisClient) LockWithBlock(key string, maxRetry int, expires ...time.Duration) (err error) {
+	for i := 0; i < maxRetry; i++ {
+		err = rc.Lock(key, expires...)
+		if err == nil {
+			return nil
+		}
+
+		if errors.Is(err, ErrLockFailed) {
+			time.Sleep(time.Millisecond * 500)
+			continue
+		}
+
+		return err
+	}
+
+	return ErrLockFailed
+}
+
 func (rc *RedisClient) Lock(key string, expires ...time.Duration) (err error) {
 	expire := defaultTTL
 	if len(expires) != 0 {
@@ -132,7 +150,7 @@ func (rc *RedisClient) Lock(key string, expires ...time.Duration) (err error) {
 
 	_, err = redis.String(rc.Do("SET", key, time.Now().Unix(), "EX", int(expire.Seconds()), "NX"))
 	if err == redis.ErrNil {
-		return
+		return ErrLockFailed
 	}
 
 	if err != nil {
