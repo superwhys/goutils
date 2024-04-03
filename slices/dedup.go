@@ -80,7 +80,7 @@ func DupSliceLarge(slice []string) []string {
 
 // DupSliceIntSmall is the faster version of DupInt32 with O(n^2) algorithm.
 // For n < 50, it has better performance and zero allocation.
-func DupSliceIntSmall(slice []int32) []int32 {
+func DupSliceIntSmall(slice []int) []int {
 	idx := 0
 	for _, s := range slice {
 		var j int
@@ -98,8 +98,8 @@ func DupSliceIntSmall(slice []int32) []int32 {
 }
 
 // DupSliceIntLarge is the hashmap version of DupInt32 with O(n) algorithm.
-func DupSliceIntLarge(slice []int32) []int32 {
-	m := map[int32]struct{}{}
+func DupSliceIntLarge(slice []int) []int {
+	m := map[int]struct{}{}
 	idx := 0
 	for i, s := range slice {
 		if _, hit := m[s]; hit {
