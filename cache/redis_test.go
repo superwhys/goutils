@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/superwhys/goutils/dialer"
 )
 
 var (
@@ -18,9 +19,7 @@ type testData struct {
 }
 
 func TestMain(m *testing.M) {
-	pool := redis.NewPool(func() (redis.Conn, error) {
-		return redis.Dial("tcp", "localhost:6379", redis.DialDatabase(1))
-	}, 3)
+	pool := dialer.DialRedisPool("localhost:6379", 2, 100)
 	c = NewRedisCache(pool)
 	m.Run()
 }

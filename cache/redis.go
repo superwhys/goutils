@@ -7,6 +7,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
+	"github.com/superwhys/goutils/redisutils"
 )
 
 var _ Cache = (*RedisCache)(nil)
@@ -16,7 +17,7 @@ var (
 )
 
 type RedisCache struct {
-	pool   *redis.Pool
+	*redisutils.RedisClient
 	prefix string
 }
 
@@ -29,7 +30,9 @@ func WithPrefix(prefix string) RedisCacheOption {
 }
 
 func NewRedisCache(pool *redis.Pool, opts ...RedisCacheOption) *RedisCache {
-	rc := &RedisCache{pool: pool}
+	rc := &RedisCache{
+		RedisClient: redisutils.NewRedisClient(pool),
+	}
 
 	for _, opt := range opts {
 		opt(rc)
@@ -39,17 +42,10 @@ func NewRedisCache(pool *redis.Pool, opts ...RedisCacheOption) *RedisCache {
 }
 
 func (c *RedisCache) Get(key string, out any) error {
-	conn := c.pool.Get()
-	defer conn.Close()
-
-	data, err := redis.Bytes(conn.Do("GET", key))
-	if err != nil {
-		return errors.Wrap(err, "redis.GET")
-	}
-
 	var p payload
-	if err := json.Unmarshal(data, &p); err != nil {
-		return errors.Wrap(err, "json.Unmarshal.redisData")
+
+	if err := c.RedisClient.Get(key, &p); err != nil {
+		return err
 	}
 
 	return p.Get(out)
@@ -64,10 +60,7 @@ func (c *RedisCache) GetOrCreate(key string, creater Creater, out any) error {
 }
 
 func (c *RedisCache) Delete(key string) {
-	conn := c.pool.Get()
-	defer conn.Close()
-
-	conn.Do("DEL", key)
+	c.RedisClient.Delete(key)
 }
 
 func (c *RedisCache) setWithTTL(conn redis.Conn, key string, value any, ttl time.Duration) (err error) {
@@ -89,7 +82,7 @@ func (c *RedisCache) packKey(key string) string {
 }
 
 func (c *RedisCache) GetOrCreateWithTTL(key string, ttl time.Duration, creator Creater, out any) error {
-	conn := c.pool.Get()
+	conn := c.GetConn()
 	defer conn.Close()
 
 	key = c.packKey(key)
@@ -124,9 +117,6 @@ func (c *RedisCache) GetOrCreateWithTTL(key string, ttl time.Duration, creator C
 }
 
 func (c *RedisCache) SetWithTTL(key string, ttl time.Duration, value any) error {
-	conn := c.pool.Get()
-	defer conn.Close()
-
 	p := payload{Content: value}
 	data, err := json.Marshal(p)
 	if err != nil {
@@ -136,14 +126,14 @@ func (c *RedisCache) SetWithTTL(key string, ttl time.Duration, value any) error 
 	key = c.packKey(key)
 
 	if ttl > 0 {
-		_, err = conn.Do("SET", key, data, "EX", int(ttl.Seconds()))
+		_, err = c.RedisClient.Do("SET", key, data, "EX", int(ttl.Seconds()))
 	} else {
-		_, err = conn.Do("SET", key, data)
+		_, err = c.RedisClient.Do("SET", key, data)
 	}
 
 	return errors.Wrap(err, "do.redis.set")
 }
 
 func (c *RedisCache) Close() error {
-	return c.pool.Close()
+	return c.RedisClient.Close()
 }
