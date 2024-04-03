@@ -36,7 +36,7 @@ func DupStrings(slice []string) []string {
 	return DupSliceLarge(slice)
 }
 
-func DupInt32(slice []int32) []int32 {
+func DupInt(slice []int) []int {
 	if len(slice) <= 50 {
 		return DupSliceIntSmall(slice)
 	}
