@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/superwhys/goutils/dialer"
-	"github.com/superwhys/goutils/lg"
 )
 
 type RedisStoreOptions struct {
@@ -65,17 +64,23 @@ var (
 
 type Token interface {
 	GetKey() string
-	Marshal() string
+	Marshal() (string, error)
 	UnMarshal(val string) error
 }
 
-func SetToken(c *gin.Context, t Token) {
+func SetToken(c *gin.Context, t Token) error {
 	session := sessions.Default(c)
 
-	session.Set(t.GetKey(), t.Marshal())
-	if err := session.Save(); err != nil {
-		lg.Errorf("set token error: %v", err)
+	s, err := t.Marshal()
+	if err != nil {
+		return errors.Wrap(err, "tokenMarshal")
 	}
+	session.Set(t.GetKey(), s)
+	if err := session.Save(); err != nil {
+		return errors.Wrap(err, "saveSession")
+	}
+
+	return nil
 }
 
 func GetToken(c *gin.Context, t Token) error {
@@ -103,8 +108,8 @@ func (st StringToken) GetKey() string {
 	return string(st)
 }
 
-func (st StringToken) Marshal() string {
-	return string(st)
+func (st StringToken) Marshal() (string, error) {
+	return string(st), nil
 }
 
 func (st StringToken) UnMarshal(val *string) error {
