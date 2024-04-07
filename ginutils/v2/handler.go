@@ -54,7 +54,7 @@ func wrapDefaultHandler(ctx context.Context, handler Handler) gin.HandlerFunc {
 			params, err := ParseMapParams(c)
 			if err != nil {
 				lg.Errorc(ctx, "parse params error: %v", err)
-				AbortWithError(c, http.StatusInternalServerError, "parse params error")
+				AbortWithError(c, http.StatusInternalServerError, "请求失败")
 				return
 			}
 			c.Set(paramsKey, params)
@@ -63,7 +63,7 @@ func wrapDefaultHandler(ctx context.Context, handler Handler) gin.HandlerFunc {
 		ret := handler.HandleFunc(ctx, c)
 		if ret != nil && ret.GetError() != nil {
 			lg.Errorc(ctx, "%v handle err: %v", lg.StructName(handler), c.Errors.JSON())
-			AbortWithError(c, ret.GetCode(), ret.GetError().Error())
+			AbortWithError(c, ret.GetCode(), ret.GetMessage())
 			return
 		}
 

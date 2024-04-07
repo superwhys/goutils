@@ -13,6 +13,7 @@ type HandleResponse interface {
 	GetCode() int
 	GetError() error
 	GetData() any
+	GetMessage() string
 }
 
 type Ret struct {
@@ -32,6 +33,10 @@ func (r *Ret) GetError() error {
 
 func (r *Ret) GetData() any {
 	return r
+}
+
+func (r *Ret) GetMessage() string {
+	return r.Message
 }
 
 func AbortWithError(c *gin.Context, code int, message string) {
