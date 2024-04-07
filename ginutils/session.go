@@ -108,7 +108,7 @@ func (st StringToken) Marshal() string {
 	return st.val
 }
 
-func (st StringToken) UnMarshal(val string) error {
-	st.val = val
+func (st StringToken) UnMarshal(val *string) error {
+	*val = st.val
 	return nil
 }
