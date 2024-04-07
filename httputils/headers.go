@@ -1,6 +1,9 @@
 package httputils
 
-import "net/http"
+import (
+	"encoding/base64"
+	"net/http"
+)
 
 type Header struct {
 	http.Header
@@ -14,6 +17,15 @@ func NewHeader() *Header {
 func (h *Header) Add(key, value string) *Header {
 	h.Set(key, value)
 	return h
+}
+
+func basicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
+
+func (h *Header) BasicAuth(user, pwd string) *Header {
+	return h.Add("Authorization", "Basic "+basicAuth(user, pwd))
 }
 
 func DefaultJsonHeader() *Header {

@@ -89,8 +89,6 @@ func Default() *Client {
 		RequestDefaultHeaderHandler(),
 		RequestParamsHandler(),
 		RequestBodyReaderHandler(),
-		DefaultHTTPHandler(),
-		DefaultResponseBodyHandler(),
 	)
 	cli.isDefault = true
 	return cli
@@ -110,7 +108,12 @@ func (cli *Client) Start() *Context {
 }
 
 func (cli *Client) DoRequest(ctx context.Context, url, method string, queryParams Params, header *Header, body []byte, callBack ...HandleFunc) *Response {
+	cli.Use(
+		DefaultHTTPHandler(),
+		DefaultResponseBodyHandler(),
+	)
 	cli.Use(callBack...)
+
 	return cli.
 		Start().
 		SetMethod(method).

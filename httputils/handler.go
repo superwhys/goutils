@@ -60,6 +60,15 @@ func RequestBodyReaderHandler() HandleFunc {
 	}
 }
 
+func RequestBasicAuthHandler(username, password string) HandleFunc {
+	return func(c *Context) {
+		c.basicAuth = &baseAuth{
+			user: username,
+			pwd:  password,
+		}
+	}
+}
+
 func RequestParamsHandler() HandleFunc {
 	return func(c *Context) {
 		if c.Params != nil {
@@ -98,6 +107,10 @@ func DefaultHTTPHandler() HandleFunc {
 			return
 		}
 		req.Header = c.Header.Header
+
+		if c.basicAuth != nil {
+			req.SetBasicAuth(c.basicAuth.user, c.basicAuth.pwd)
+		}
 
 		resp, err := c.client.Do(req)
 		c.Request = req

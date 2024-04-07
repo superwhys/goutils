@@ -12,6 +12,11 @@ import (
 
 const abortIndex = math.MaxInt8 >> 1
 
+type baseAuth struct {
+	user string
+	pwd  string
+}
+
 type Context struct {
 	ctx        context.Context
 	conf       *Config
@@ -20,6 +25,7 @@ type Context struct {
 	Url        string
 	Params     Params
 	Body       []byte
+	basicAuth  *baseAuth
 	bodyReader io.Reader
 
 	handlers HandlersChain

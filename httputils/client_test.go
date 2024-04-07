@@ -120,7 +120,7 @@ func TestNewClientGet(t *testing.T) {
 		newCli := New(&Config{
 			RequestTimeOut: 5 * time.Second,
 		})
-		newCli.Use(addParamsHandler, DefaultHTTPHandler())
+		newCli.Use(addParamsHandler)
 		resp, err := newCli.Get(
 			context.Background(),
 			fmt.Sprintf("%v/%v", srvApi, "test_get_params"),
