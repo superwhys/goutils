@@ -6,7 +6,6 @@ require (
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
-	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/superwhys/goutils v0.0.0-20240403103035-7a07c024c7f0
