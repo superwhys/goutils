@@ -72,7 +72,20 @@ func wrapDefaultHandler(ctx context.Context, handler Handler) gin.HandlerFunc {
 		}
 
 		if ret != nil {
-			ReturnWithStatus(c, ret)
+			ReturnWithStatus(c, ret.GetCode(), ret.GetData())
 		}
 	}
+}
+
+type ginHandlerFuncHandler struct {
+	handlerFunc gin.HandlerFunc
+}
+
+func (h *ginHandlerFuncHandler) HandleFunc(_ context.Context, c *gin.Context) HandleResponse {
+	h.handlerFunc(c)
+	return nil
+}
+
+func WrapGinHandlerFunc(handlerFunc gin.HandlerFunc) Handler {
+	return &ginHandlerFuncHandler{handlerFunc}
 }

@@ -39,6 +39,14 @@ func (r *Ret) GetMessage() string {
 	return r.Message
 }
 
+func (r *Ret) PackContent(code int, data any, err error, message string) *Ret {
+	r.Err = err
+	r.Message = message
+	r.Code = code
+	r.Data = data
+	return r
+}
+
 func AbortWithError(c *gin.Context, code int, message string) {
 	c.AbortWithStatusJSON(code, Ret{
 		Code:    code,
@@ -47,12 +55,12 @@ func AbortWithError(c *gin.Context, code int, message string) {
 	c.Error(errors.New(message))
 }
 
-func StatusOk(c *gin.Context, data HandleResponse) {
-	c.JSON(200, data.GetData())
+func StatusOk(c *gin.Context, data any) {
+	ReturnWithStatus(c, 200, data)
 }
 
-func ReturnWithStatus(c *gin.Context, data HandleResponse) {
-	c.JSON(data.GetCode(), data.GetData())
+func ReturnWithStatus(c *gin.Context, status int, data any) {
+	c.JSON(status, data)
 }
 
 const (
