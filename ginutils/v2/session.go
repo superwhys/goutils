@@ -112,9 +112,13 @@ func (st StringToken) Marshal() (string, error) {
 	return string(st), nil
 }
 
-func (st StringToken) UnMarshal(val *string) error {
-	*val = string(st)
+func (st *StringToken) UnMarshal(val string) error {
+	*st = StringToken(val)
 	return nil
+}
+
+func NewSessionMiddleware(key string, store sessions.Store) gin.HandlerFunc {
+	return sessions.Sessions(key, store)
 }
 
 type SessionMiddlewareHandler struct {
@@ -122,7 +126,7 @@ type SessionMiddlewareHandler struct {
 	store      sessions.Store
 }
 
-func NewSessionMiddleware(key string, store sessions.Store) *SessionMiddlewareHandler {
+func NewSessionMiddlewareHandler(key string, store sessions.Store) *SessionMiddlewareHandler {
 	return &SessionMiddlewareHandler{
 		sessionKey: key,
 		store:      store,
