@@ -97,21 +97,18 @@ func GetToken(c *gin.Context, t Token) error {
 	return nil
 }
 
-type StringToken struct {
-	key string
-	val string
-}
+type StringToken string
 
 func (st StringToken) GetKey() string {
-	return st.key
+	return string(st)
 }
 
 func (st StringToken) Marshal() string {
-	return st.val
+	return string(st)
 }
 
 func (st StringToken) UnMarshal(val *string) error {
-	*val = st.val
+	*val = string(st)
 	return nil
 }
 
