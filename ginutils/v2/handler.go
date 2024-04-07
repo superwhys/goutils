@@ -62,7 +62,7 @@ func wrapDefaultHandler(ctx context.Context, handler Handler) gin.HandlerFunc {
 
 		ret := handler.HandleFunc(ctx, c)
 		if ret != nil && ret.GetError() != nil {
-			lg.Errorc(ctx, "%v handle err: %v", lg.StructName(handler), c.Errors.JSON())
+			lg.Errorc(ctx, "%v handle err: %v", lg.StructName(handler), ret.GetError())
 			AbortWithError(c, ret.GetCode(), ret.GetMessage())
 			return
 		}
