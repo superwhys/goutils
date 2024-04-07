@@ -1,6 +1,8 @@
 package ginutils
 
 import (
+	"context"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
@@ -110,5 +112,22 @@ func (st StringToken) Marshal() string {
 
 func (st StringToken) UnMarshal(val *string) error {
 	*val = st.val
+	return nil
+}
+
+type SessionMiddlewareHandler struct {
+	sessionKey string
+	store      sessions.Store
+}
+
+func NewSessionMiddleware(key string, store sessions.Store) *SessionMiddlewareHandler {
+	return &SessionMiddlewareHandler{
+		sessionKey: key,
+		store:      store,
+	}
+}
+
+func (sh *SessionMiddlewareHandler) HandleFunc(ctx context.Context, c *gin.Context) HandleResponse {
+	sessions.Sessions(sh.sessionKey, sh.store)(c)
 	return nil
 }
