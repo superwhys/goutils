@@ -13,7 +13,7 @@ type Cache interface {
 	Get(key string, out any) error
 	Set(key string, value any) error
 	GetOrCreate(key string, creater Creater, out any) error
-	Delete(key string)
+	Delete(key string) error
 	Close() error
 }
 
@@ -25,7 +25,7 @@ type CacheWithTTL interface {
 
 type payload struct {
 	Content any   `json:"content"`
-	Error   error `json:"error"`
+	Error   error `json:"error,omitempty"`
 }
 
 func (p payload) Get(out any) error {

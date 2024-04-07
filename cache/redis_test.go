@@ -192,7 +192,7 @@ func TestRedisCache_SetWithTTL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := c.SetWithTTL(tt.args.key, tt.args.ttl, tt.args.value); (err != nil) != tt.wantErr {
+			if err := c.SetWithTTL(tt.args.key, tt.args.value, tt.args.ttl); (err != nil) != tt.wantErr {
 				t.Errorf("RedisCache.SetWithTTL() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -52,15 +52,15 @@ func (c *RedisCache) Get(key string, out any) error {
 }
 
 func (c *RedisCache) Set(key string, value any) error {
-	return c.SetWithTTL(key, 0, value)
+	return c.SetWithTTL(key, value, 0)
 }
 
 func (c *RedisCache) GetOrCreate(key string, creater Creater, out any) error {
 	return c.GetOrCreateWithTTL(key, 0, creater, out)
 }
 
-func (c *RedisCache) Delete(key string) {
-	c.RedisClient.Delete(key)
+func (c *RedisCache) Delete(key string) error {
+	return c.RedisClient.Delete(key)
 }
 
 func (c *RedisCache) setWithTTL(conn redis.Conn, key string, value any, ttl time.Duration) (err error) {
@@ -116,7 +116,7 @@ func (c *RedisCache) GetOrCreateWithTTL(key string, ttl time.Duration, creator C
 	return p.Get(out)
 }
 
-func (c *RedisCache) SetWithTTL(key string, ttl time.Duration, value any) error {
+func (c *RedisCache) SetWithTTL(key string, value any, ttl time.Duration) error {
 	p := payload{Content: value}
 	data, err := json.Marshal(p)
 	if err != nil {

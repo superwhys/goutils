@@ -86,13 +86,14 @@ func (mc *MemoryCache) GetOrCreate(key string, creater Creater, out any) error {
 	return mc.GetOrCreateWithTTL(key, 0, creater, out)
 }
 
-func (mc *MemoryCache) Delete(key string) {
+func (mc *MemoryCache) Delete(key string) error {
 	mc.lock.Lock()
 	_, ok := mc.payload[key]
 	if ok {
 		delete(mc.payload, key)
 	}
 	mc.lock.Unlock()
+	return nil
 }
 
 func (mc *MemoryCache) Close() error {
