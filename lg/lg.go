@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/superwhys/goutils/internal/shared"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
@@ -33,15 +34,18 @@ func EnableDebug() {
 	debug = true
 }
 
-func EnableLogToFile(filename string, maxSize, maxBackup, maxAge int, logCompress bool) {
-	t := true
-	shared.LogToFile = &t
-	shared.LogFileName = &filename
-	shared.LogMaxSize = &maxSize
-	shared.LogMaxBackup = &maxBackup
-	shared.LogMaxAge = &maxAge
-	shared.LogCompress = &logCompress
-	Infof("redirect log to %v", filename)
+func EnableLogToFile(logConf *shared.LogConfig) {
+	shared.PtrLogConfig = logConf
+	logger := &lumberjack.Logger{
+		Filename:   logConf.FileName,
+		MaxSize:    logConf.MaxSize,
+		MaxBackups: logConf.MaxBackup,
+		MaxAge:     logConf.MaxAge,
+		Compress:   logConf.Compress,
+	}
+
+	Infof("set logger to file: %v", logConf.FileName)
+	SetDefaultLoggerOutput(logger, logger)
 }
 
 func doLog(log *log.Logger, msg string) {
@@ -152,9 +156,10 @@ func Debugf(msg string, v ...interface{}) {
 
 // TimeFuncDuration returns the duration consumed by function.
 // It has specified usage like:
-//     f := TimeFuncDuration()
-//	   DoSomething()
-//	   duration := f()
+//
+//	    f := TimeFuncDuration()
+//		   DoSomething()
+//		   duration := f()
 func TimeFuncDuration() func() time.Duration {
 	start := time.Now()
 	return func() time.Duration {
