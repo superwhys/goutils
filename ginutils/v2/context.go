@@ -2,6 +2,7 @@ package ginutils
 
 import (
 	"encoding/json"
+	"net/http"
 	"reflect"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,19 @@ func (r *Ret) GetData() any {
 
 func (r *Ret) GetMessage() string {
 	return r.Message
+}
+
+func (r *Ret) SuccessRet(data any) *Ret {
+	r.Code = http.StatusOK
+	r.Data = data
+	return r
+}
+
+func (r *Ret) FailedRet(code int, err error, message string) *Ret {
+	r.Code = code
+	r.Err = err
+	r.Message = message
+	return r
 }
 
 func (r *Ret) PackContent(code int, data any, err error, message string) *Ret {
