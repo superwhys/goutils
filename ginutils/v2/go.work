@@ -1,6 +1,0 @@
-go 1.20
-
-use (
-	.
-	/Users/yong/programes/go/src/github.com/superwhys/goutils
-)
