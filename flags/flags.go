@@ -16,6 +16,7 @@ import (
 	"github.com/superwhys/goutils/service/finder"
 	"github.com/superwhys/goutils/service/finder/consul"
 	"github.com/superwhys/goutils/slices"
+	"github.com/superwhys/goutils/slowinit"
 
 	// Import remote config
 
@@ -80,6 +81,7 @@ func Parse() {
 	readConfig()
 	checkFlagKey()
 	injectViperPflag()
+	slowinit.Init()
 }
 
 func injectNestedKey() {
