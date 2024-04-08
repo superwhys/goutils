@@ -45,16 +45,16 @@ func initFlags() {
 	v.AddConfigPath(".")
 	v.AddConfigPath("./tmp/config/")
 
+	shared.PtrServiceName = pflag.String("service", os.Getenv("SERVICE"), "Service name to access the config in remote consul KV store.")
+	shared.PtrConsulAddr = pflag.String("consulAddr", consul.HostAddress+":8500", "Consul address")
+	debug = pflag.Bool("debug", false, "Set true to enable debug mode")
+	useConsul = pflag.Bool("useConsul", true, "Whether to use the consul function")
+
 	err := v.BindPFlags(pflag.CommandLine)
 	if err != nil {
 		lg.Fatal("BindPFlags Error!")
 	}
-
-	shared.PtrServiceName = pflag.String("service", os.Getenv("SERVICE"), "Service name to access the config in remote consul KV store.")
-	shared.PtrConsulAddr = pflag.String("consulAddr", consul.HostAddress+":8500", "Consul address")
 	config = pflag.StringP("config", "f", defaultConfigFile, "Specify config file to parse. Support json, yaml, toml etc.")
-	debug = pflag.Bool("debug", false, "Set true to enable debug mode")
-	useConsul = pflag.Bool("useConsul", true, "Whether to use the consul function")
 
 	allKeys = append(allKeys, "debug", "service", "consulAddr", "useConsul")
 }
@@ -154,13 +154,14 @@ func injectViperPflag() {
 		lg.EnableDebug()
 	}
 
+	if addr := v.GetString("consulAddr"); addr != "" {
+		*shared.PtrConsulAddr = addr
+		lg.Debugf("Change consul addr -> %v", addr)
+	}
+
 	if v.GetBool("useConsul") {
 		*useConsul = true
 		finder.SetConsulFinderToDefault()
-	}
-
-	if addr := v.GetString("consulAddr"); addr != "" {
-		*shared.PtrConsulAddr = addr
 	}
 
 	if srv := v.GetString("service"); srv != "" {
