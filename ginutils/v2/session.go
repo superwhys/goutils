@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
+	redisgo "github.com/gomodule/redigo/redis"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/superwhys/goutils/dialer"
@@ -55,7 +57,11 @@ func NewRedisSessionStore(service string, opts ...RedisStoreOptionFunc) (redis.S
 	}
 
 	redisPool := dialer.DialRedisPool(service, opt.db, 100, opt.password)
-	return redis.NewStoreWithPool(redisPool, opt.keyPairs...)
+	return NewRedisSessionStoreWithRedisPool(redisPool, opt.keyPairs)
+}
+
+func NewRedisSessionStoreWithRedisPool(pool *redisgo.Pool, keyPairs [][]byte) (redis.Store, error) {
+	return redis.NewStoreWithPool(pool, keyPairs...)
 }
 
 var (
@@ -68,7 +74,7 @@ type Token interface {
 	UnMarshal(val string) error
 }
 
-func SetToken(c *gin.Context, t Token) error {
+func SetSessionToken(c *gin.Context, t Token) error {
 	session := sessions.Default(c)
 
 	s, err := t.Marshal()
@@ -83,7 +89,7 @@ func SetToken(c *gin.Context, t Token) error {
 	return nil
 }
 
-func GetToken(c *gin.Context, t Token) error {
+func GetSessionToken(c *gin.Context, t Token) error {
 	session := sessions.Default(c)
 
 	val := session.Get(t.GetKey())
