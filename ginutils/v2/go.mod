@@ -8,7 +8,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/superwhys/goutils v0.0.0-20240403103035-7a07c024c7f0
+	github.com/superwhys/goutils v0.0.0-20240407165600-4839b80adbd0
 )
 
 require (

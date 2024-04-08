@@ -223,6 +223,8 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/superwhys/goutils v0.0.0-20240403103035-7a07c024c7f0 h1:YGiT5F7pOXo+aaGGqfi18/Ysah7/deaWniFUDZyGB/E=
 github.com/superwhys/goutils v0.0.0-20240403103035-7a07c024c7f0/go.mod h1:PjENePXCYsL01Zg4An/IPIn38T+yaDD2iS4tz5ko41s=
+github.com/superwhys/goutils v0.0.0-20240407165600-4839b80adbd0 h1:Wx/GCs2s32g48+O/qBmWTMzbj6uEq9QBW6TBFEIF+KM=
+github.com/superwhys/goutils v0.0.0-20240407165600-4839b80adbd0/go.mod h1:9BuK4nmYLlPqucLRDQ/AzrtlwEJ6QyJuFeGAIkLmxF0=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
