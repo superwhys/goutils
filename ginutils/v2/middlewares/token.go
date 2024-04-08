@@ -10,9 +10,9 @@ import (
 	"github.com/superwhys/goutils/lg"
 )
 
-const tokenKey = "auto-token"
+const tokenKey = "auth-token"
 
-func TokenManagerMiddleware(tokenTmpl authutils.Token, tokenManager authutils.TokenManager) gin.HandlerFunc {
+func TokenManagerMiddleware(tokenTmpl authutils.Token, tokenManager *authutils.TokenManager) gin.HandlerFunc {
 	t := reflect.TypeOf(tokenTmpl)
 	if t.Kind() != reflect.Ptr || t.Elem().Kind() != reflect.Struct {
 		lg.Fatal("NewTaskQueue: typeObj should be ptr to struct")
