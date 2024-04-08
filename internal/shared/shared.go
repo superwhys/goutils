@@ -1,14 +1,17 @@
 package shared
 
+type LogConfig struct {
+	FileName  string `desc:"output filename (default runlog.log)"`
+	MaxSize   int    `desc:"file max szie (default 3)"`
+	MaxBackup int    `desc:"max backup count (default 3)"`
+	MaxAge    int    `desc:"max backup age (default 30)"`
+	Compress  bool   `desc:"whether to use compress (default false)"`
+}
+
 var (
 	PtrServiceName *string
 	PtrConsulAddr  *string
-	LogToFile      *bool
-	LogFileName    *string
-	LogMaxSize     *int
-	LogMaxBackup   *int
-	LogMaxAge      *int
-	LogCompress    *bool
+	PtrLogConfig   *LogConfig
 )
 
 func GetServiceName() string {
@@ -25,44 +28,14 @@ func GetConsulAddress() string {
 	return *PtrConsulAddr
 }
 
-func IsLogToFile() bool {
-	if LogToFile == nil {
-		return false
-	}
-	return *LogToFile
+func (l *LogConfig) SetDefault() {
+	l.FileName = "runlog.log"
+	l.MaxSize = 3
+	l.MaxBackup = 3
+	l.MaxAge = 30
+	l.Compress = false
 }
 
-func GetLogFileName() string {
-	if LogFileName == nil {
-		return "runlog.log"
-	}
-	return *LogFileName
-}
-
-func GetLogMaxSize() int {
-	if LogMaxSize == nil {
-		return 10
-	}
-	return *LogMaxSize
-}
-
-func GetLogMaxBackup() int {
-	if LogMaxBackup == nil {
-		return 3
-	}
-	return *LogMaxBackup
-}
-
-func GetLogMaxAge() int {
-	if LogMaxAge == nil {
-		return 30
-	}
-	return *LogMaxAge
-}
-
-func IsLogCompress() bool {
-	if LogCompress == nil {
-		return false
-	}
-	return *LogCompress
+func GetLogConfig() *LogConfig {
+	return PtrLogConfig
 }
