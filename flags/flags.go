@@ -156,7 +156,6 @@ func injectViperPflag() {
 
 	if addr := v.GetString("consulAddr"); addr != "" {
 		*shared.PtrConsulAddr = addr
-		lg.Debugf("Change consul addr -> %v", addr)
 	}
 
 	if v.GetBool("useConsul") {
