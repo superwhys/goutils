@@ -16,16 +16,11 @@ import (
 	"github.com/superwhys/goutils/service/finder"
 	"github.com/superwhys/goutils/service/finder/consul"
 	"github.com/superwhys/goutils/slices"
-	"gopkg.in/natefinch/lumberjack.v2"
 
 	// Import remote config
 
 	_ "github.com/spf13/viper/remote"
 )
-
-type remoteServices struct {
-	Services map[string]finder.Service
-}
 
 var (
 	allKeys           []string
@@ -36,11 +31,10 @@ var (
 	debug             *bool
 	useConsul         *bool
 
-	manualServices *remoteServices
-
 	v = viper.New()
 
-	servicesCache = Struct("remoteService", (*remoteServices)(nil), "Remote service config")
+	isLogToFile   = Bool("isLogToFile", false, "Whether write log to file.")
+	logConfigFlag = Struct("logConfig", &shared.LogConfig{}, "Log config")
 )
 
 func OverrideDefaultConfigFile(configFile string) {
@@ -55,21 +49,14 @@ func initFlags() {
 	if err != nil {
 		lg.Fatal("BindPFlags Error!")
 	}
+
 	shared.PtrServiceName = pflag.String("service", os.Getenv("SERVICE"), "Service name to access the config in remote consul KV store.")
 	shared.PtrConsulAddr = pflag.String("consulAddr", consul.HostAddress+":8500", "Consul address")
-	if shared.LogToFile == nil {
-		shared.LogToFile = pflag.Bool("logToFile", false, "is log to file")
-		shared.LogFileName = pflag.String("logFileName", "runlog.log", "log file name")
-		shared.LogMaxSize = pflag.Int("logMaxSize", 10, "log max size")
-		shared.LogMaxBackup = pflag.Int("logMaxBackup", 3, "log max backup")
-		shared.LogMaxAge = pflag.Int("logMaxAge", 30, "log max age")
-		shared.LogCompress = pflag.Bool("logCompress", false, "is compress the log file")
-	}
 	config = pflag.StringP("config", "f", defaultConfigFile, "Specify config file to parse. Support json, yaml, toml etc.")
 	debug = pflag.Bool("debug", false, "Set true to enable debug mode")
 	useConsul = pflag.Bool("useConsul", true, "Whether to use the consul function")
 
-	allKeys = append(allKeys, "debug")
+	allKeys = append(allKeys, "debug", "service", "consulAddr", "useConsul")
 }
 
 func Viper() *viper.Viper {
@@ -85,30 +72,17 @@ func Parse() {
 	initFlags()
 	pflag.Parse()
 
-	if *useConsul {
-		finder.SetConsulFinderToDefault()
-	}
-
 	if *debug {
 		lg.EnableDebug()
 	}
 
-	if shared.IsLogToFile() {
-		if shared.IsLogToFile() {
+	injectNestedKey()
+	readConfig()
+	checkFlagKey()
+	injectViperPflag()
+}
 
-			logger := &lumberjack.Logger{
-				Filename:   shared.GetLogFileName(),
-				MaxSize:    shared.GetLogMaxSize(),
-				MaxBackups: shared.GetLogMaxBackup(),
-				MaxAge:     shared.GetLogMaxAge(),
-				Compress:   shared.IsLogCompress(),
-			}
-
-			lg.Infof("set logger to file: %v", shared.GetLogFileName())
-			lg.SetDefaultLoggerOutput(logger, logger)
-		}
-	}
-
+func injectNestedKey() {
 	for key, valuePtr := range nestedKey {
 		flag := pflag.Lookup(key)
 		if flag != nil && flag.Changed {
@@ -138,16 +112,9 @@ func Parse() {
 			}
 		}
 	}
+}
 
-	if config != nil && *config != "" {
-		v.SetConfigFile(*config)
-		if err := v.ReadInConfig(); err != nil {
-			lg.Error(fmt.Sprintf("Failed to read on local file: %v", err))
-		} else {
-			lg.Info(fmt.Sprintf("Read config from local file: %v!", *config))
-		}
-	}
-
+func checkFlagKey() {
 	for _, k := range requiredKey {
 		if isZero(v.Get(k)) {
 			lg.Fatal("Missing", k)
@@ -169,20 +136,41 @@ func Parse() {
 			lg.Fatal(fmt.Sprintf("Unknown flag in config: --%s", k))
 		}
 	}
+}
 
+func readConfig() {
+	if config != nil && *config != "" {
+		v.SetConfigFile(*config)
+		if err := v.ReadInConfig(); err != nil {
+			lg.Error(fmt.Sprintf("Failed to read on local file: %v", err))
+		} else {
+			lg.Info(fmt.Sprintf("Read config from local file: %v!", *config))
+		}
+	}
+}
+
+func injectViperPflag() {
 	if v.GetBool("debug") {
 		lg.EnableDebug()
 	}
 
-	ms := &remoteServices{}
-	lg.PanicError(servicesCache(ms))
-	registerManualServiceFinder(ms)
-}
+	if v.GetBool("useConsul") {
+		*useConsul = true
+		finder.SetConsulFinderToDefault()
+	}
 
-func registerManualServiceFinder(ms *remoteServices) {
-	for serviceName, serviceInfo := range ms.Services {
-		finder.GetServiceFinder().RegisterServiceWithTag(serviceName, serviceInfo.Address, serviceInfo.Tags)
-		lg.Debug(fmt.Sprintf("register manual service info, name: %s, address: %s, tags: %v", serviceName, serviceInfo.Address, serviceInfo.Tags))
+	if addr := v.GetString("consulAddr"); addr != "" {
+		*shared.PtrConsulAddr = addr
+	}
+
+	if srv := v.GetString("service"); srv != "" {
+		*shared.PtrServiceName = srv
+	}
+
+	if isLogToFile() {
+		logConf := &shared.LogConfig{}
+		lg.PanicError(logConfigFlag(logConf))
+		lg.EnableLogToFile(logConf)
 	}
 }
 
@@ -324,6 +312,13 @@ type HasValidator interface {
 	Validate() error
 }
 
+// Struct is used to load an object configuration into the viper configuration Manager
+// example:
+//
+//		Struct("testKey", &TestConfig{}, "struct config")
+//	or  Struct("testKey", (*TestConfig)(nil), "struct config")
+//
+// the first example can add the field in help page, while the second example can not
 func Struct(key string, defaultValue interface{}, usage string) func(out interface{}) error {
 	if err := setPFlagRecursively(key, defaultValue); err != nil {
 		lg.Debug("Ignore flag key", key, err)
@@ -332,7 +327,6 @@ func Struct(key string, defaultValue interface{}, usage string) func(out interfa
 	v.SetDefault(key, defaultValue)
 	allKeys = append(allKeys, key)
 	return func(out interface{}) error {
-		// structDecodeOpt := viper.DecodeHook(decodeHookFunc())
 		if err := v.UnmarshalKey(key, out); err != nil {
 			return err
 		}
@@ -354,16 +348,15 @@ func setPFlag(key string, ptr interface{}) {
 }
 
 func setPFlagRecursively(prefix string, i interface{}) error {
-	v := reflect.ValueOf(i)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
+	vf := reflect.ValueOf(i)
+	if vf.Kind() == reflect.Ptr {
+		vf = vf.Elem()
 	}
-	if v.Kind() != reflect.Struct {
-		return errors.New("Not struct")
+	if vf.Kind() != reflect.Struct {
+		return errors.New("not struct")
 	}
-	var names []string
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Type().Field(i)
+	for i := 0; i < vf.NumField(); i++ {
+		field := vf.Type().Field(i)
 		name := field.Name
 		for _, tag := range []string{"flags", "flag", "json", "bson", "mapstructure"} {
 			if content := field.Tag.Get(tag); content != "" {
@@ -373,44 +366,44 @@ func setPFlagRecursively(prefix string, i interface{}) error {
 		}
 		desc := field.Tag.Get("desc")
 		name = prefix + "." + name
-		names = append(names, name)
 
-		switch v.Field(i).Kind() {
+		switch vf.Field(i).Kind() {
 		case reflect.Bool:
-			setPFlag(name, pflag.Bool(name, v.Field(i).Bool(), desc))
+			setPFlag(name, pflag.Bool(name, vf.Field(i).Bool(), desc))
 		case reflect.Int, reflect.Int64:
 			if field.Type.String() == "time.Duration" {
-				setPFlag(name, pflag.Duration(name, time.Duration(v.Field(i).Int()), desc))
+				setPFlag(name, pflag.Duration(name, time.Duration(vf.Field(i).Int()), desc))
 			} else {
-				setPFlag(name, pflag.Int(name, int(v.Field(i).Int()), desc))
+				setPFlag(name, pflag.Int(name, int(vf.Field(i).Int()), desc))
 			}
 		case reflect.Float64:
-			setPFlag(name, pflag.Float64(name, v.Field(i).Float(), desc))
+			setPFlag(name, pflag.Float64(name, vf.Field(i).Float(), desc))
 		case reflect.String:
-			setPFlag(name, pflag.String(name, v.Field(i).String(), desc))
+			setPFlag(name, pflag.String(name, vf.Field(i).String(), desc))
 		case reflect.Slice:
 			switch field.Type.String() {
 			case "[]int":
-				setPFlag(name, pflag.IntSlice(name, v.Field(i).Interface().([]int), desc))
+				setPFlag(name, pflag.IntSlice(name, vf.Field(i).Interface().([]int), desc))
 			case "[]string":
-				setPFlag(name, pflag.StringSlice(name, v.Field(i).Interface().([]string), desc))
+				setPFlag(name, pflag.StringSlice(name, vf.Field(i).Interface().([]string), desc))
 			case "[]float64":
-				setPFlag(name, pflag.Float64Slice(name, v.Field(i).Interface().([]float64), desc))
+				setPFlag(name, pflag.Float64Slice(name, vf.Field(i).Interface().([]float64), desc))
 			case "[]bool":
-				setPFlag(name, pflag.BoolSlice(name, v.Field(i).Interface().([]bool), desc))
+				setPFlag(name, pflag.BoolSlice(name, vf.Field(i).Interface().([]bool), desc))
 			case "[]time.Duration":
-				setPFlag(name, pflag.DurationSlice(name, v.Field(i).Interface().([]time.Duration), desc))
+				setPFlag(name, pflag.DurationSlice(name, vf.Field(i).Interface().([]time.Duration), desc))
 			default:
 				return fmt.Errorf("Unsupport type of field %s %s", field.Name, field.Type.String())
 			}
 		case reflect.Struct, reflect.Ptr:
-			if err := setPFlagRecursively(name, v.Field(i).Interface()); err != nil {
+			if err := setPFlagRecursively(name, vf.Field(i).Interface()); err != nil {
 				return err
 			}
 		default:
-			return fmt.Errorf("Unsupport kind of field %s %s", field.Name, v.Field(i).Kind())
+			return fmt.Errorf("Unsupport kind of field %s %s", field.Name, vf.Field(i).Kind())
 		}
 	}
+
 	return nil
 }
 
