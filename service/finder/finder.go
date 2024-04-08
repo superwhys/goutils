@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	defaultServiceFinder = GetConsulServiceFinder()
+	defaultServiceFinder = NewManualFinder()
 }
 
 func GetServiceFinder() ServiceFinder {
