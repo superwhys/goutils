@@ -19,6 +19,7 @@ type TokenStorager interface {
 
 type Token interface {
 	GetKey() string
+	SetKey(string)
 }
 
 type TokenManager struct {
